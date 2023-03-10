@@ -153,11 +153,11 @@ class Datapipe:
         # Resample (Oversample from different class represented too few)
         weights = len(csvFiles)*[1.0/len(csvFiles)]
 
-        if len(self.csvFiles) > 1:
+        if len(csvFiles) > 1:
             dss = [self.makeDataset(csvFile, shuffle_buffer_size) for csvFile in csvFiles]
             ds = tf.data.Dataset.sample_from_datasets(dss, weights=weights)
         else:
-            ds = self.makeDataset(self.csvFiles[0], shuffle_buffer_size)
+            ds = self.makeDataset(csvFiles[0], shuffle_buffer_size)
 
 
         ds = ds.map(Datapipe._processConvert)
