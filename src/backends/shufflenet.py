@@ -5,6 +5,9 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Dropout, Dense, Multiply, BatchNormalization, Conv2D, MaxPooling2D, UpSampling2D, Concatenate, Add, Lambda, MaxPool2D, Input, Conv2DTranspose, SeparableConv2D, ReLU, Permute, Reshape, DepthwiseConv2D,AvgPool2D,Concatenate,GlobalAveragePooling2D
 from tensorflow.keras.regularizers import l2
 
+from .layers import NormalizationLayer
+
+
 
 def spatial_attention(x):
     # SA module
@@ -111,9 +114,9 @@ def shuffle_unit(x, groups, channels,strides, dilation_rate=(1, 1)):
 def Shuffle_Net(start_channels, groups = 2,  nf=256, input_shape = (224,224,3)):
     
     input = Input (input_shape)
+    x = NormalizationLayer()(input)
 
-
-    x = convolution(input, filters=24, k=3, s=2) # x2
+    x = convolution(x, filters=24, k=3, s=2) # x2
     x4 = MaxPool2D (pool_size=(3,3), strides = 2, padding='same')(x) #x4
 
     # ============================================

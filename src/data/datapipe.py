@@ -12,7 +12,7 @@ from albumentations import (
     OneOf, RGBShift, ShiftScaleRotate, CenterCrop, VerticalFlip, RandomCrop, Lambda, BboxParams,ToGray 
 )
 
-from labels import encodeTF, drawTF
+from .labels import encodeTF, drawTF
 
 
 DEFAULTTRANSFORM = Compose([
