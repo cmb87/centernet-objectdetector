@@ -62,7 +62,8 @@ class Datapipe:
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, (ih, iw))
 
-        return img, bboxes, labels, imgPath
+        return img, bboxes, labels 
+        #return img, bboxes, labels, imgPath
 
 
     # ============================

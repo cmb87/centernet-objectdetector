@@ -23,8 +23,9 @@ csvFilesTest = ["synthetic_test.csv", "sticktraps_test.csv"]
 learnrate = 1e-4
 batchSize = 8
 
-start_channels = 144
+start_channels = 256
 groups = 4
+
 nfeatSN = 256
 
 nfeat = 256
