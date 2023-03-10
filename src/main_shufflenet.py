@@ -17,11 +17,17 @@ ih,iw,ic = 128*4, 128*4, 3
 ny,nx,nc = ih//4,iw//4,4
 
 
-csvFilesTrain = ["synthetic_train.csv", "sticktraps_train.csv"]
-csvFilesTest = ["synthetic_test.csv", "sticktraps_test.csv"]
+csvFilesTrain = [
+    "/SHARE4ALL/demoData/synthetic_train.csv",
+    "/SHARE4ALL/demoData/sticktraps_train.csv"
+]
+csvFilesTest = [
+    "/SHARE4ALL/demoData/synthetic_test.csv",
+    "/SHARE4ALL/demoData/sticktraps_test.csv"
+]
 
 learnrate = 1e-4
-batchSize = 8
+batchSize = 5
 
 start_channels = 256
 groups = 4
@@ -35,8 +41,8 @@ nfeat = 256
 pipe = Datapipe()
 
 
-g = pipe(csvFilesTrain, nx,ny,nc,iw,ih,ic)
-gt  = pipe(csvFilesTest, nx,ny,nc,iw,ih,ic, augment=False)
+g = pipe(csvFilesTrain, nx,ny,nc,iw,ih,ic, batchSize=batchSize)
+gt  = pipe(csvFilesTest, nx,ny,nc,iw,ih,ic, augment=False, batchSize=batchSize)
 
 
 # ========= Final prediction =================
@@ -55,6 +61,8 @@ yhead = tf.keras.layers.Concatenate(axis=-1)([xhead1, xhead2, xhead3])
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
+model.load_weights("weights_shufflenet_1678480332511837.h5")
+
 print(model.summary(line_length = 100))
 
 
@@ -62,8 +70,8 @@ print(model.summary(line_length = 100))
 # Training
 # ============================================
 now = datetime.now()
-timestamp = datetime.timestamp(now)
-timestamp = str(timestamp).replace('.','')
+timestamp = str(now)[:19].replace(' ','_').replace(':','').replace('-','')
+print(timestamp)
 
 tfbcb = tf.keras.callbacks.TensorBoard(
     log_dir=f"./tblogs/shufflenet/{timestamp}", histogram_freq=0, write_graph=True,

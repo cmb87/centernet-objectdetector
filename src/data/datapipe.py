@@ -131,6 +131,13 @@ class Datapipe:
 
 
     # ============================
+    def makeDataset(self, csvFile, bufferSize):
+        ds = tf.data.experimental.CsvDataset(csvFile, [tf.string, tf.string, tf.string], select_cols=[1,2,3], header=True)
+        ds = ds.shuffle(bufferSize).repeat(1)
+        return ds
+
+
+    # ============================
     def __call__(self, csvFiles, nx, ny, nc, iw, ih, ic, batchSize=3, sigma=0.02, shuffle_buffer_size=8000, nrepeat=1, augment=True, shuffle=True, transform=None):
 
         self.nx,self.ny = nx, ny
@@ -140,8 +147,19 @@ class Datapipe:
         self.transform = DEFAULTTRANSFORM if transform is None else transform
 
 
-        ds = tf.data.experimental.CsvDataset(csvFiles, [tf.string, tf.string, tf.string], select_cols=[1,2,3], header=True)
-        ds = ds.shuffle(shuffle_buffer_size).repeat(nrepeat)
+        #ds = tf.data.experimental.CsvDataset(csvFiles, [tf.string, tf.string, tf.string], select_cols=[1,2,3], header=True)
+        #ds = ds.shuffle(shuffle_buffer_size)
+
+        # Resample (Oversample from different class represented too few)
+        weights = len(csvFiles)*[1.0/len(csvFiles)]
+
+        if len(self.csvFiles) > 1:
+            dss = [self.makeDataset(csvFile, shuffle_buffer_size) for csvFile in csvFiles]
+            ds = tf.data.Dataset.sample_from_datasets(dss, weights=weights)
+        else:
+            ds = self.makeDataset(self.csvFiles[0], shuffle_buffer_size)
+
+
         ds = ds.map(Datapipe._processConvert)
 
         ds = ds.map(self._processLoadImage)

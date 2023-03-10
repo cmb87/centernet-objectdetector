@@ -78,6 +78,9 @@ def encodeTF(boxes, labels, nx, ny):
 
     sigma2 = (2 * radius)/6
     sigma2 = tf.expand_dims(tf.expand_dims(tf.expand_dims(sigma2 ,0),0),-1) 
+    sigma2 = tf.clip_by_value(sigma2, 1.0, 100.0)
+
+    #sigma2 = tf.constant(5.0, dtype=tf.float32)
 
     # Gaussian Kernel Smearing [H,W,N]
     hm = tf.exp(

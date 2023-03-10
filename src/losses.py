@@ -19,7 +19,6 @@ def centerNetLoss(ytrue, ypred, alpha=2.0, beta=4.0):
 
     lossHm = -tf.reduce_sum(m*a + (1.0-m)*b, axis=[1,2,3])
 
-
     # Local and box error
     mask = tf.expand_dims(tf.cast(tf.greater(pdeltaTrue[...,0],0.0), tf.float32),-1) # [B,H,W,1]
     N = tf.reduce_sum(mask, axis=[1,2,3]) + 1 

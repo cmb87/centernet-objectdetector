@@ -44,9 +44,9 @@ def createTrainingFile(path, classNames, imageSubPath="./", fileType="json", **k
 if __name__ == "__main__":
 
     name = "sticktraps"
-    path = r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\stickytraps"
-    name = "synthetic"
-    path = r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\synthetic\synthetic"
+    path = "/SHARE4ALL/demoData/stickytraps"
+    #name = "synthetic"
+    #path = "/SHARE4ALL/demoData/synthetic"
 
 
     classNames =  ["NC", "WF", "MR", "IN"]

@@ -17,7 +17,7 @@ class DrawImageCallback(tf.keras.callbacks.Callback):
         self.tbcb = tf.summary.create_file_writer(os.path.join(logdir, writerName))
         self.writerName = writerName
         self.step_number = 0
-        self.drawSteps = 0
+        self.drawSteps = drawSteps
         self.thres = thres
         self.tfdataset = tfdataset
 
@@ -30,7 +30,7 @@ class DrawImageCallback(tf.keras.callbacks.Callback):
             logs ([type], optional): [description]. Defaults to None.
         """
 
-        if self.step % self.drawSteps == 0:
+        if self.step_number % self.drawSteps == 0:
             
             x, ytrue = None, None
 
