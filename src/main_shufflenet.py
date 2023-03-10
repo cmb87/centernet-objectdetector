@@ -6,7 +6,7 @@ os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import tensorflow as tf
 from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, Lambda, MaxPool2D, Reshape, BatchNormalization
 
-
+import pandas as pd
 from data.datapipe import Datapipe
 from losses import centerNetLoss
 from backends.shufflenet import Shuffle_Net
@@ -25,6 +25,11 @@ csvFilesTest = [
     "/SHARE4ALL/demoData/synthetic_test.csv",
     "/SHARE4ALL/demoData/sticktraps_test.csv"
 ]
+
+NTEST = 705
+NTRAIN = 2818
+
+
 
 learnrate = 1e-4
 batchSize = 5
@@ -118,8 +123,12 @@ model.compile(
 model.fit(
     g, epochs=3000,
     callbacks = [tfbcb, mcpcb, estcb, rlrcb, dricb, drtcb, term],
-    validation_data=gt
+    validation_data=gt,
+    steps_per_epoch=NTRAIN//batchSize,
+    validation_steps=NTEST//batchSize,
 )
+
+
 
 model.save_weights(f'weights_shufflenet_{timestamp}.h5')
 
