@@ -112,7 +112,7 @@ def encodeTF(boxes, labels, nx, ny):
 
 
 # ===============================================
-def decode(y, iw=None, ih=None, K=5):
+def decode(y, iw=None, ih=None, K=60):
 
     B, H, W = y.shape[0], y.shape[1], y.shape[2]
     C = y.shape[3]-4
@@ -201,53 +201,67 @@ def drawHmTF(y):
     return hm
 
 
+
+
+
+
 # ================================================
 if __name__ == "__main__":
 
+    import glob
 
-    classNames =  ["NC", "WF", "MR", "IN"]
+    classNames =  ["NC", "WF", "MR", "IN", "TR"]
     colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]
 
     imagFile = r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\debug\000001.jpg"
     jsonFile = r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\debug\000001.json"
 
-    img = cv2.imread(imagFile)
+    
 
-    with open(jsonFile, "r") as f1:
-        data = json.load(f1)
-
-    iw,ih = img.shape[1],img.shape[0]
+    for jsonFile in glob.glob(r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\stickytraps\*.json"):
 
 
-    boxes = np.asarray([(b["points"][0][0]/iw, b["points"][0][1]/ih, b["points"][1][0]/iw, b["points"][1][1]/ih )  for b in data["shapes"]])
-    labels = np.asarray([classNames.index(b["label"])  for b in data["shapes"]])
-    labels = np.asarray([[0 if i !=l else 1 for i in range(len(classNames))]  for l in labels]) # [N,C]
-
-    nx,ny = iw//4,ih//4
-
-    #y = encode(boxes, labels, nx , ny)
-    y = encodeTF(tf.constant(boxes, dtype=tf.float32), labels, nx, ny)
-    y = tf.expand_dims(y,0)
-
-    imgs = cv2.imread(imagFile)
-    imgs = imgs.astype(np.float32)/255.0
-    imgs = np.expand_dims(imgs,0)
-    imgs = tf.constant(imgs)
+        with open(jsonFile, "r") as f1:
+            data = json.load(f1)
 
 
-    imgsAug = drawTF(imgs, y, thres=0.1, normalizedImage=True)
+        img = cv2.imread(jsonFile.replace(".json", ".jpg"))
 
-    hms = drawHmTF(y)
-
-    for hm,img in zip(hms,imgsAug):
-        img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-
-        print(tf.reduce_max(hm), tf.reduce_min(hm))
-        print(hm.shape)
-        plt.imshow(hm)
-        plt.show()
+        iw,ih = img.shape[1],img.shape[0]
 
 
-        plt.imshow(img)
-        plt.show()
+        boxes = np.asarray([(b["points"][0][0]/iw, b["points"][0][1]/ih, b["points"][1][0]/iw, b["points"][1][1]/ih )  for b in data["shapes"]])
+        labels = np.asarray([classNames.index(b["label"])  for b in data["shapes"]])
+        labels = np.asarray([[0 if i !=l else 1 for i in range(len(classNames))]  for l in labels]) # [N,C]
 
+        nx,ny = iw//4,ih//4
+
+        #y = encode(boxes, labels, nx , ny)
+        y = encodeTF(tf.constant(boxes, dtype=tf.float32), labels, nx, ny)
+        y = tf.expand_dims(y,0)
+
+
+        if False:
+            imgs = cv2.imread(imagFile)
+            imgs = imgs.astype(np.float32)/255.0
+            imgs = np.expand_dims(imgs,0)
+            imgs = tf.constant(imgs)
+
+
+            imgsAug = drawTF(imgs, y, thres=0.1, normalizedImage=True)
+
+            hms = drawHmTF(y)
+
+            for hm,img in zip(hms,imgsAug):
+                img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+
+                print(tf.reduce_max(hm), tf.reduce_min(hm))
+                print(hm.shape)
+                plt.imshow(hm)
+                plt.show()
+
+
+                plt.imshow(img)
+                plt.show()
+
+            break

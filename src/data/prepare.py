@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from sklearn.model_selection import train_test_split
+
 
 from utils import readJsonAnnotation, readPASCALVOCAnnotation
 
@@ -41,10 +43,20 @@ def createTrainingFile(path, classNames, imageSubPath="./", fileType="json", **k
 
 if __name__ == "__main__":
 
+    name = "sticktraps"
+    path = r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\stickytraps"
+    name = "synthetic"
+    path = r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\synthetic\synthetic"
+
 
     classNames =  ["NC", "WF", "MR", "IN"]
-    path = r"C:\Users\z004hkut\projects\01_robotics\01_ml\project-ctchr\objectDetector\data\stickytraps"
+
     imageSubPath = "./"
 
-    df = createTrainingFile(path, classNames, imageSubPath, fileType="json")
-    df.to_csv("test.csv", index=False)
+    df = createTrainingFile(path, classNames, imageSubPath, fileType="json", renameDict={"TR": "IN"})
+
+    train, test = train_test_split(df, test_size=0.2)
+
+    test.to_csv(f"{name}_test.csv",index=False)
+    train.to_csv(f"{name}_train.csv",index=False)
+

@@ -9,7 +9,7 @@ import matplotlib.cm as cm
 from albumentations import (
     Compose, RandomBrightness, JpegCompression, HueSaturationValue, RandomContrast, HorizontalFlip,Crop ,
     Rotate, KeypointParams, Cutout, Superpixels, Spatter, Sharpen, OpticalDistortion, Affine, Perspective, FancyPCA, ToSepia,
-    OneOf, RGBShift, ShiftScaleRotate, CenterCrop, VerticalFlip, RandomCrop, Lambda, BboxParams
+    OneOf, RGBShift, ShiftScaleRotate, CenterCrop, VerticalFlip, RandomCrop, Lambda, BboxParams,ToGray 
 )
 
 from labels import encodeTF, drawTF
@@ -19,18 +19,19 @@ DEFAULTTRANSFORM = Compose([
     # Rotate(limit=50, p=0.5),
     # Lambda(image = cartoonize, keypoint=nope, bbox=nope, always_apply=False, p=1.0),
     ToSepia(always_apply=False, p=0.1),
-    RandomContrast(limit=0.2, p=0.5),
-    Sharpen (alpha=(0.2, 0.5), lightness=(0.5, 1.0), always_apply=False, p=0.5),
-    JpegCompression(quality_lower=85, quality_upper=100, p=0.5),
+    RandomContrast(limit=0.2, p=0.3),
+    ToGray(p=0.2),
+    Sharpen (alpha=(0.2, 0.5), lightness=(0.5, 1.0), always_apply=False, p=0.3),
+    JpegCompression(quality_lower=85, quality_upper=100, p=0.3),
     OneOf([
-        HueSaturationValue(p=0.5), 
-        RGBShift(p=0.7),
+        HueSaturationValue(p=0.3), 
+        RGBShift(p=0.3),
         RandomBrightness(limit=0.1),  
     ], p=1), 
 
     # Superpixels(p_replace=0.5, n_segments=128, max_size=128, interpolation=1, always_apply=False, p=0.9),
 
-    ShiftScaleRotate(scale_limit=[-0.3,0.3], shift_limit=[0.0,0.3], border_mode = cv2.BORDER_REPLICATE, p=0.5),
+    ShiftScaleRotate(scale_limit=[-0.15,0.15], shift_limit=[0.0,0.15], border_mode = cv2.BORDER_REPLICATE, p=0.5),
     HorizontalFlip(),
     VerticalFlip(),
     #Lambda(image = mixup, keypoint=nope, bbox=nope, always_apply=False, p=1.0),
@@ -61,14 +62,14 @@ class Datapipe:
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, (ih, iw))
 
-        return img, bboxes, labels
+        return img, bboxes, labels, imgPath
 
 
     # ============================
-    def _processAugment(self, img, bboxes, labels):
+    def _processAugment(self, img, bboxes, labels, *args):
 
         def aug_fn(img, bboxes, labels, iw, ih):
-
+            
             boxes_ext = [b.tolist() + [l] for b,l in zip(bboxes,labels)]
             data = {"image": np.uint8(255*img), "bboxes":boxes_ext}
 
@@ -80,8 +81,15 @@ class Datapipe:
             bboxes = np.asarray([b[:4] for b in aug_data["bboxes"]]).astype(np.float32)
             labels = np.asarray([b[-1] for b in aug_data["bboxes"]]).astype(np.int32)
 
-            return aug_img, bboxes, labels
+            if len(bboxes.shape) > 1:
+                xm = 0.5*(bboxes[:,0]+bboxes[:,2])
+                ym = 0.5*(bboxes[:,1]+bboxes[:,3])
 
+                idx = ( xm >= 0.0) & ( xm < 1.0) & ( ym >= 0.0) & ( ym < 1.0)
+
+                return aug_img, bboxes[idx,:], labels[idx]
+
+            return aug_img, bboxes, labels
 
         aug_img, bboxes, labels = tf.numpy_function(
             func=aug_fn,
@@ -89,12 +97,12 @@ class Datapipe:
             Tout=[tf.float32,tf.float32,tf.int32]
         )
 
-        return aug_img, bboxes, labels
+        return aug_img, bboxes, labels, *args
 
 
     # ============================
     @staticmethod
-    def _processConvert(imgPath, bboxes, labels):
+    def _processConvert(imgPath, bboxes, labels, *args):
 
         bboxes, labels = tf.py_function(
             lambda x,y: (eval(x.numpy().decode("utf-8")), eval(y.numpy().decode("utf-8"))),
@@ -103,19 +111,22 @@ class Datapipe:
         )
 
         # Clip Bounding Boxes
-        bboxes = tf.clip_by_value(bboxes,0.0,1.0)
+        bboxes = tf.clip_by_value(bboxes,0.0,0.999)
 
-        return imgPath, bboxes, labels
+        return imgPath, bboxes, labels, *args
 
     # ============================
-    def _gaussianLabel(self, img, bboxes, labels):
+    def _gaussianLabel(self, img, bboxes, labels, *args):
         
-        bboxes = tf.clip_by_value(bboxes,0.0,1.0)
+        bboxes = tf.clip_by_value(bboxes,0.0,0.999)
         labels = tf.one_hot(labels, depth=self.nc)
         y = encodeTF(bboxes, labels, self.nx, self.ny)
         
+        return img, y, *args
 
-        return img, y
+    # ============================
+    def _filter(self, img, bboxes, labels, *args):
+        return tf.math.not_equal(tf.shape(bboxes)[0], 0)
 
 
     # ============================
@@ -137,6 +148,8 @@ class Datapipe:
         if augment:
             ds = ds.map(self._processAugment)
 
+        ds = ds.filter(self._filter)
+
         ds = ds.map(self._gaussianLabel)
 
         ds = ds.batch(batchSize)
@@ -145,24 +158,25 @@ class Datapipe:
 
 
 
-
-
 # ============================
 if __name__ == "__main__":
 
     pipe = Datapipe()
 
-    ih,iw,ic = 128*3, 128*4, 3
+    ih,iw,ic = 128*4, 128*4, 3
     ny,nx,nc = ih//4,iw//4,4
 
 
-    ds = pipe(["test.csv"], nx,ny,nc,iw,ih,ic)
+    ds = pipe(["synthetic_train.csv", "sticktraps_train.csv"], nx,ny,nc,iw,ih,ic)
 
-
-    for (x,y) in ds.take(13):
+    for (x,y,p) in ds.take(13):
         
         imgsAug = drawTF(x, y, thres=0.1, normalizedImage=True)
 
-        for b in range(x.shape[0]):
-            plt.imshow(imgsAug[b,...])
-            plt.show()
+        if True:
+  
+            for b in range(x.shape[0]):
+                plt.title(p[b])
+                plt.imshow(imgsAug[b,...])
+                plt.show()
+            

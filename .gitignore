@@ -11,6 +11,7 @@ venv/
 tblogs/
 *.h5
 .packaging
+*.csv
 
 # Distribution / packaging
 .Python
