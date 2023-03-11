@@ -9,7 +9,7 @@ import matplotlib.cm as cm
 from albumentations import (
     Compose, RandomBrightness, JpegCompression, HueSaturationValue, RandomContrast, HorizontalFlip,Crop ,
     Rotate, KeypointParams, Cutout, Superpixels, Spatter, Sharpen, OpticalDistortion, Affine, Perspective, FancyPCA, ToSepia,
-    OneOf, RGBShift, ShiftScaleRotate, CenterCrop, VerticalFlip, RandomCrop, Lambda, BboxParams,ToGray 
+    OneOf, RGBShift, ShiftScaleRotate, CenterCrop, VerticalFlip, RandomCrop, Lambda, BboxParams,ToGray, GaussNoise, ISONoise 
 )
 
 from .labels import encodeTF, drawTF
@@ -34,6 +34,11 @@ DEFAULTTRANSFORM = Compose([
     ShiftScaleRotate(scale_limit=[-0.15,0.15], shift_limit=[0.0,0.15], border_mode = cv2.BORDER_REPLICATE, p=0.5),
     HorizontalFlip(),
     VerticalFlip(),
+    OneOf([
+      ISONoise(p=0.3),
+      GaussNoise(p=0.3),
+    ], p=1), 
+
     #Lambda(image = mixup, keypoint=nope, bbox=nope, always_apply=False, p=1.0),
     #Cutout(num_holes=18, max_h_size=18, max_w_size=18, fill_value=0, always_apply=False, p=0.3),
     #Spatter(mean=0.65, std=0.3, gauss_sigma=2, cutout_threshold=0.68, intensity=0.6, mode='rain', always_apply=False, p=0.3)

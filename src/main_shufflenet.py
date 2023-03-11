@@ -31,7 +31,7 @@ NTRAIN = 2818
 
 
 
-learnrate = 1e-4
+learnrate = 1e-5
 batchSize = 5
 
 start_channels = 256
@@ -62,11 +62,11 @@ xhead1 = Conv2D(nc, (1,1), padding="same", use_bias=True, activation="sigmoid", 
 xhead2 = Conv2D(2, (1,1), padding="same", use_bias=True, name="head2-conv22")(xhead2)
 xhead3 = Conv2D(2, (1,1), padding="same", use_bias=True, name="head3-conv23")(xhead3)
 
-yhead = tf.keras.layers.Concatenate(axis=-1)([xhead1, xhead2, xhead3])
+yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2, xhead3])
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
-model.load_weights("weights_shufflenet_1678480332511837.h5")
+model.load_weights("weights_shufflenet_20230310_215011.h5")
 
 print(model.summary(line_length = 100))
 
@@ -95,7 +95,7 @@ mcpcb = tf.keras.callbacks.ModelCheckpoint(
 )
 
 rlrcb = tf.keras.callbacks.ReduceLROnPlateau(
-    monitor='loss',
+    monitor='val_loss',
     factor=0.5,
     patience=35,
     verbose=0,
