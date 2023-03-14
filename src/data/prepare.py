@@ -16,7 +16,7 @@ def createTrainingFile(path, classNames, imageSubPath="./", fileType="json", **k
     # Select File Parser
     fileParser = {
         "json": readJsonAnnotation,
-        "pascalvoc": readPASCALVOCAnnotation
+        "xml": readPASCALVOCAnnotation
     }[fileType]
 
 
@@ -43,17 +43,31 @@ def createTrainingFile(path, classNames, imageSubPath="./", fileType="json", **k
 
 if __name__ == "__main__":
 
-    name = "sticktraps"
-    path = "/SHARE4ALL/demoData/stickytraps"
+    classNames =  ["NC", "WF", "MR", "IN"]
+    imageSubPath = "./"
+    fileType = "json"
+    renameDict={"TR": "IN"}
+    #name = "sticktraps"
+    #path = "/SHARE4ALL/demoData/stickytraps"
     #name = "synthetic"
     #path = "/SHARE4ALL/demoData/synthetic"
 
 
-    classNames =  ["NC", "WF", "MR", "IN"]
 
-    imageSubPath = "./"
+    name = "VOC2007p12"
+    #name = "VOC2007"
+    renameDict={}
+    classNames =  ["person","bird", "cat", "cow", "dog", "horse", "sheep", "aeroplane", "bicycle", "boat", "bus", "car", "motorbike", "train", "bottle", "chair", "diningtable","pottedplant", "sofa", "tvmonitor"]
+    imageSubPath = "../"
+    fileType = "xml"
 
-    df = createTrainingFile(path, classNames, imageSubPath, fileType="json", renameDict={"TR": "IN"})
+    path =     "/SHARE4ALL/pascalVOC/VOC2007p12/Annotations"
+    #path = "/SHARE4ALL/pascalVOC/VOC2007/test/VOCdevkit/VOC2007/Annotations"
+
+    
+    
+
+    df = createTrainingFile(path, classNames, imageSubPath, fileType=fileType, renameDict=renameDict)
 
     train, test = train_test_split(df, test_size=0.2)
 
