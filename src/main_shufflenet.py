@@ -19,15 +19,17 @@ ny,nx,nc = ih//4,iw//4,4
 
 csvFilesTrain = [
     "/SHARE4ALL/demoData/synthetic_train.csv",
-    "/SHARE4ALL/demoData/sticktraps_train.csv"
+    "/SHARE4ALL/demoData/sticktraps_train.csv",
+    "/SHARE4ALL/demoData/farmerTrain1_train.csv"
 ]
 csvFilesTest = [
     "/SHARE4ALL/demoData/synthetic_test.csv",
-    "/SHARE4ALL/demoData/sticktraps_test.csv"
+    "/SHARE4ALL/demoData/sticktraps_test.csv",
+    "/SHARE4ALL/demoData/farmerTrain1_test.csv"
 ]
 
-NTEST = 705
-NTRAIN = 2818
+NTEST = 705+1
+NTRAIN = 2818+9
 
 
 
@@ -66,7 +68,7 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
-model.load_weights("weights_shufflenet_20230310_215011.h5")
+model.load_weights("weights_shufflenet_20230311_070949_pestControl.h5")
 
 print(model.summary(line_length = 100))
 

@@ -13,25 +13,8 @@ from postprocessing.freezer import ModelFreezer
 
 # ========= Settings =================
 ih,iw,ic = 128*3, 128*3, 3
-ny,nx,nc = ih//4,iw//4, 20 #4
+ny,nx,nc = ih//4,iw//4, 4
 
-
-csvFilesTrain = [
-    "/SHARE4ALL/demoData/synthetic_train.csv",
-    "/SHARE4ALL/demoData/sticktraps_train.csv"
-]
-csvFilesTest = [
-    "/SHARE4ALL/demoData/synthetic_test.csv",
-    "/SHARE4ALL/demoData/sticktraps_test.csv"
-]
-
-NTEST = 705
-NTRAIN = 2818
-
-
-
-learnrate = 1e-5
-batchSize = 5
 
 start_channels = 256
 groups = 4
@@ -58,7 +41,7 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
 #model.load_weights("models/weights_shufflenet_20230311_070949_pestControl.h5")
-model.load_weights("weights_shufflenet_20230313_061015.h5")
+model.load_weights("weights_shufflenet_20230326_204513_pestControl.h5")
 
 print("Weights Loaded!")
 

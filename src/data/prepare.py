@@ -47,29 +47,31 @@ if __name__ == "__main__":
     imageSubPath = "./"
     fileType = "json"
     renameDict={"TR": "IN"}
+    name = "farmerTrain1"
+    path = "/SHARE4ALL/demoData/farmer1Train"
     #name = "sticktraps"
     #path = "/SHARE4ALL/demoData/stickytraps"
     #name = "synthetic"
     #path = "/SHARE4ALL/demoData/synthetic"
 
 
+    if False:
+        name = "VOC2007p12"
+        #name = "VOC2007"
+        renameDict={}
+        classNames =  ["person","bird", "cat", "cow", "dog", "horse", "sheep", "aeroplane", "bicycle", "boat", "bus", "car", "motorbike", "train", "bottle", "chair", "diningtable","pottedplant", "sofa", "tvmonitor"]
+        imageSubPath = "../"
+        fileType = "xml"
 
-    name = "VOC2007p12"
-    #name = "VOC2007"
-    renameDict={}
-    classNames =  ["person","bird", "cat", "cow", "dog", "horse", "sheep", "aeroplane", "bicycle", "boat", "bus", "car", "motorbike", "train", "bottle", "chair", "diningtable","pottedplant", "sofa", "tvmonitor"]
-    imageSubPath = "../"
-    fileType = "xml"
+        path =     "/SHARE4ALL/pascalVOC/VOC2007p12/Annotations"
+        #path = "/SHARE4ALL/pascalVOC/VOC2007/test/VOCdevkit/VOC2007/Annotations"
 
-    path =     "/SHARE4ALL/pascalVOC/VOC2007p12/Annotations"
-    #path = "/SHARE4ALL/pascalVOC/VOC2007/test/VOCdevkit/VOC2007/Annotations"
-
-    
+        
     
 
     df = createTrainingFile(path, classNames, imageSubPath, fileType=fileType, renameDict=renameDict)
 
-    train, test = train_test_split(df, test_size=0.2)
+    train, test = train_test_split(df, test_size=0.1)
 
     test.to_csv(f"{name}_test.csv",index=False)
     train.to_csv(f"{name}_train.csv",index=False)
