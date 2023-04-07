@@ -133,8 +133,13 @@ class Datapipe:
     # ============================
     def _filter(self, img, bboxes, labels, *args):
         return tf.math.not_equal(tf.shape(bboxes)[0], 0)
-
-
+    
+    # ============================
+    def _makeDataSet(self, csvFile, buffer=3000):
+        ds = tf.data.experimental.CsvDataset([csvFile], [tf.string, tf.string, tf.string], select_cols=[1,2,3], header=True)
+        ds = ds.shuffle(buffer).repeat(1)
+        return ds
+    
     # ============================
     def __call__(self, csvFiles, nx, ny, nc, iw, ih, ic, batchSize=3, sigma=0.02, shuffle_buffer_size=8000, nrepeat=1, augment=True, shuffle=True, transform=None):
 
@@ -146,17 +151,18 @@ class Datapipe:
 
         # https://stackoverflow.com/questions/54843448/how-to-zip-tensorflow-dataset-and-train-in-keras-correctly
         # https://stackoverflow.com/questions/64725275/how-to-configure-dataset-pipelines-with-tensorflow-make-csv-dataset-for-keras-mo
-        ds = tf.data.experimental.CsvDataset(csvFiles, [tf.string, tf.string, tf.string], select_cols=[1,2,3], header=True)
-        ds = ds.shuffle(shuffle_buffer_size).repeat(nrepeat)
+
+        #ds = tf.data.experimental.CsvDataset(csvFiles, [tf.string, tf.string, tf.string], select_cols=[1,2,3], header=True)
+        #ds = ds.shuffle(shuffle_buffer_size).repeat(nrepeat)
 
         # # Resample (Oversample from different class represented too few)
-        # weights = len(csvFiles)*[1.0/len(csvFiles)]
+        weights = len(csvFiles)*[1.0/len(csvFiles)]
 
-        # if len(csvFiles) > 1:
-        #     dss = [self.makeDataset(csvFile, shuffle_buffer_size) for csvFile in csvFiles]
-        #     ds = tf.data.Dataset.sample_from_datasets(dss, weights=weights)
-        # else:
-        #     ds = self.makeDataset(csvFiles[0], shuffle_buffer_size)
+        if len(csvFiles) > 1:
+            dss = [self._makeDataSet(csvFile, shuffle_buffer_size) for csvFile in csvFiles]
+            ds = tf.data.Dataset.sample_from_datasets(dss, weights=weights)
+        else:
+            ds = self._makeDataSet(csvFiles[0], shuffle_buffer_size)
 
 
         ds = ds.map(Datapipe._processConvert)

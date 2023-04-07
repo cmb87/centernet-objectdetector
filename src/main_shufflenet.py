@@ -2,6 +2,8 @@ import os
 import sys
 from datetime import datetime
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, Lambda, MaxPool2D, Reshape, BatchNormalization
@@ -18,18 +20,20 @@ ny,nx,nc = ih//4,iw//4,4
 
 
 csvFilesTrain = [
-    "/SHARE4ALL/demoData/synthetic_train.csv",
+   # "/SHARE4ALL/demoData/synthetic_train.csv",
     "/SHARE4ALL/demoData/sticktraps_train.csv",
-    "/SHARE4ALL/demoData/farmerTrain1_train.csv"
+    "/SHARE4ALL/demoData/farmerTrain1_train.csv",
+    "/SHARE4ALL/demoData/outdoor1Train_train.csv",
 ]
 csvFilesTest = [
-    "/SHARE4ALL/demoData/synthetic_test.csv",
+   # "/SHARE4ALL/demoData/synthetic_test.csv",
     "/SHARE4ALL/demoData/sticktraps_test.csv",
-    "/SHARE4ALL/demoData/farmerTrain1_test.csv"
+    "/SHARE4ALL/demoData/farmerTrain1_test.csv",
+    "/SHARE4ALL/demoData/outdoor1Train_test.csv",
 ]
 
-NTEST = 705+1
-NTRAIN = 2818+9
+NTEST = 605 +1 + 5
+NTRAIN = 2418 + 9 + 39
 
 
 
@@ -68,7 +72,7 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
-model.load_weights("weights_shufflenet_20230311_070949_pestControl.h5")
+model.load_weights("./models/weights_shufflenet_20230326_204513_pestControl.h5")
 
 print(model.summary(line_length = 100))
 

@@ -47,8 +47,11 @@ if __name__ == "__main__":
     imageSubPath = "./"
     fileType = "json"
     renameDict={"TR": "IN"}
-    name = "farmerTrain1"
-    path = "/SHARE4ALL/demoData/farmer1Train"
+    name = "outdoor1Train"
+    path = "/SHARE4ALL/demoData/outdoor1Train"
+
+    #name = "farmerTrain1"
+    #path = "/SHARE4ALL/demoData/farmer1Train"
     #name = "sticktraps"
     #path = "/SHARE4ALL/demoData/stickytraps"
     #name = "synthetic"
