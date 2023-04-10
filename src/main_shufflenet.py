@@ -37,8 +37,8 @@ NTRAIN = 2418 + 9 + 39
 
 
 
-learnrate = 1e-5
-batchSize = 5
+learnrate = 1e-4
+batchSize = 6
 
 start_channels = 256
 groups = 4
@@ -72,8 +72,8 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
-model.load_weights("./models/weights_shufflenet_20230326_204513_pestControl.h5")
-
+model.load_weights("./weights_shufflenet_20230408_093200.h5")
+model.load_weights("./models/weights_shufflenet_20230408_160754_pestControl.h5")
 print(model.summary(line_length = 100))
 
 

@@ -41,8 +41,8 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
 #model.load_weights("models/weights_shufflenet_20230311_070949_pestControl.h5")
-model.load_weights("models/weights_shufflenet_20230406_153240_pestContro.h5")
-
+#model.load_weights("models/weights_shufflenet_20230406_153240_pestContro.h5")
+model.load_weights("./models/weights_shufflenet_20230408_160754_pestControl.h5")
 print("Weights Loaded!")
 
 
