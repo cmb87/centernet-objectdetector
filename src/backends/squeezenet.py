@@ -1,12 +1,13 @@
 import os
 import tensorflow as tf
 import logging
+
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, MaxPooling2D, UpSampling2D, Concatenate, Add, Lambda, MaxPool2D, Input, Conv2DTranspose, SeparableConv2D, ReLU
 from tensorflow.keras.regularizers import l2
 
 
-
+from .layers import CafeNormalizationLayer
 
 # ===========================================================
 # The Feature extractor

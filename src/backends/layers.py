@@ -20,6 +20,21 @@ class NormalizationLayer(tf.keras.Model):
         return (x - mean)/std
 
 
+class ByteLayer(tf.keras.Model):
+    def __init__(self, **kwargs):
+        super(ByteLayer, self).__init__(**kwargs)
+
+    def get_config(self):
+        return {}
+    #
+    def call(self, x, training=False):
+        """
+        Takes as input normalized data [0.0-1.0] and transforms them to Cafe normalization
+        :type training: object
+        """
+        return 255*x
+
+
 
 class PostprocessingLayer(tf.keras.Model):
     def __init__(self, iw=320, ih=320, ndet=50, **kwargs):

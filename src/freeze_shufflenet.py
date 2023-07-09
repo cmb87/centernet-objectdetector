@@ -2,6 +2,7 @@ import os
 import sys
 from datetime import datetime
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, Lambda, MaxPool2D, Reshape, BatchNormalization
@@ -42,7 +43,8 @@ model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
 #model.load_weights("models/weights_shufflenet_20230311_070949_pestControl.h5")
 #model.load_weights("models/weights_shufflenet_20230406_153240_pestContro.h5")
-model.load_weights("./models/weights_shufflenet_20230408_160754_pestControl.h5")
+#model.load_weights("./models/weights_shufflenet_20230408_160754_pestControl.h5")
+model.load_weights("/SHARE4ALL/testData/weights_shufflenet_20230707_100351.h5")
 print("Weights Loaded!")
 
 

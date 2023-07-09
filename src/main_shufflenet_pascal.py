@@ -10,6 +10,7 @@ import pandas as pd
 from data.datapipe import Datapipe
 from losses import centerNetLoss
 from backends.shufflenet import Shuffle_Net
+from backends.resnet import resnet_models
 from callbacks import DrawImageCallback
 
 # ========= Settings =================
