@@ -1,5 +1,5 @@
 from keras_resnet import models as resnet_models
-from keras.layers import Input, Conv2DTranspose, BatchNormalization, ReLU, Conv2D, Lambda, MaxPooling2D, Dropout
+from keras.layers import Input, Conv2DTranspose, BatchNormalization, ReLU, Conv2D, Lambda, MaxPooling2D, Dropout, Add
 from keras.layers import ZeroPadding2D
 from keras.models import Model
 from keras.initializers import normal, constant, zeros
@@ -27,23 +27,40 @@ def efficientNet( input_size=512):
  
     efficientNet.trainable =False
 
-    C5 = efficientNet.outputs[-1]
-    # C5 = resnet.get_layer('activation_49').output
+    for n,l in enumerate(efficientNet.layers):
+        print(n, l.name, l.get_output_at(0).get_shape().as_list())
 
-    x = Dropout(rate=0.5)(C5)
-    # decoder
+    C2 = efficientNet.layers[18].output # 128
+    C3 = efficientNet.layers[32].output # 64
+    C4 = efficientNet.layers[142].output # 32
+    C5 = efficientNet.outputs[-1] #16
+
+    x2 = Dropout(rate=0.125)(C2)
+    x3 = Dropout(rate=0.125)(C3)
+    x4 = Dropout(rate=0.250)(C4)
+    x5 = Dropout(rate=0.500)(C5)
+
+    x = x5
     num_filters = 256
-    for i in range(3):
+
+    for i,y in enumerate([x4,x3,x2]):
         num_filters = num_filters // pow(2, i)
         # x = Conv2D(num_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=l2(5e-4))(
         #     x)
         # x = BatchNormalization()(x)
         # x = ReLU()(x)
-        x = Conv2DTranspose(num_filters, (4, 4), strides=2, use_bias=False, padding='same',
-                            kernel_initializer='he_normal',
-                            kernel_regularizer=l2(5e-4))(x)
+        #x = Conv2DTranspose(num_filters, (4, 4), strides=2, use_bias=False, padding='same',
+        #                    kernel_initializer='he_normal',
+        #                    kernel_regularizer=l2(5e-4))(x)
+
+        x = Conv2D(num_filters, (1, 1), padding='same')(x)
+        x  = tf.keras.layers.UpSampling2D( size=(2, 2), data_format=None, interpolation='bilinear')(x)
+
+        y = Conv2D(num_filters, (3, 3), padding='same')(y)
+        x = Add()([x,y])
         x = BatchNormalization()(x)
         x = ReLU()(x)
+
 
 
     model = Model(inputs=image_input, outputs=x)

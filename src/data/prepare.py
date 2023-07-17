@@ -88,13 +88,27 @@ if __name__ == "__main__":
     # name = "stickytrapsWOIn"
     # path = "/SHARE4ALL/testData/stickytraps"
 
-    classNames =  ["NC", "WF", "MR", "TR"]
-    imageSubPath = "./"
-    fileType = "json"
-    renameDict={} #{"TR": "IN"}
-    name = "farmer1WOIn"
-    path = "/SHARE4ALL/testData/farmer1Tiny"
+    # classNames =  ["NC", "WF", "MR", "TR"]
+    # imageSubPath = "./"
+    # fileType = "json"
+    # renameDict={} #{"TR": "IN"}
+    # name = "farmer1WOIn"
+    # path = "/SHARE4ALL/testData/farmer1Tiny"
  
+    # classNames =  ["delle", "riss", "verstopft"]
+    # imageSubPath = "./"
+    # fileType = "json"
+    # renameDict={} #{"TR": "IN"}
+    # name = "am_v1"
+    # path = "/SHARE4ALL/thermografie/data"
+
+    classNames =  ["tomato"]
+    imageSubPath = "../data/"
+    fileType = "xml"
+    renameDict={} #{"TR": "IN"}
+    name = "tomato_cn"
+    path = "/SHARE4ALL/testData2/labels"
+
 
     if False:
         name = "VOC2007p12"
@@ -112,7 +126,7 @@ if __name__ == "__main__":
 
     df = createTrainingFile(path, classNames, imageSubPath, fileType=fileType, renameDict=renameDict)
 
-    train, test = train_test_split(df, test_size=0.1)
+    train, test = train_test_split(df, test_size=0.2)
 
     test.to_csv(f"{name}_test.csv",index=False)
     train.to_csv(f"{name}_train.csv",index=False)

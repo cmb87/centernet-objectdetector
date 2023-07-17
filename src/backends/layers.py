@@ -1,5 +1,34 @@
 import tensorflow as tf
 
+def se_unit(x, bottleneck=2):
+    with tf.variable_scope(None, 'SE_module'):
+        n, h, w, c = x.get_shape().as_list()
+
+        kernel_size = resolve_shape(x)
+        x_pool = slim.avg_pool2d(x, kernel_size, stride=1)
+        x_pool = tf.reshape(x_pool, shape=[-1, c])
+        fc = slim.fully_connected(x_pool, bottleneck, activation_fn=tf.nn.relu,
+                                  biases_initializer=None)
+        fc = slim.fully_connected(fc, c, activation_fn=tf.nn.sigmoid,
+                                  biases_initializer=None)
+        if n is None:
+            channel_w = tf.reshape(fc, shape=tf.convert_to_tensor([tf.shape(x)[0], 1, 1, c]))
+        else:
+            channel_w = tf.reshape(fc, shape=[n, 1, 1, c])
+
+        x = tf.multiply(x, channel_w)
+    return x
+
+def sa_unit(x):
+    with tf.variable_scope(None, 'SA_module'):
+        shape=x.get_shape().as_list()
+        y=tf.keras.layers.conv2d(x,shape[-1],kernel_size=1,stride=1,biases_initializer=None,activation_fn=None)
+        y=tf.keras.layers.batch_norm(y,activation_fn=None, fused=False)
+        y=tf.nn.sigmoid(y)
+        x=tf.multiply(x,y)
+        return x
+
+
 
 class NormalizationLayer(tf.keras.Model):
     def __init__(self, **kwargs):

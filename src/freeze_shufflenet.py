@@ -13,8 +13,8 @@ from backends.layers import PostprocessingLayer
 from postprocessing.freezer import ModelFreezer
 
 # ========= Settings =================
-ih,iw,ic = 128*3, 128*3, 3
-ny,nx,nc = ih//4,iw//4, 4
+ih,iw,ic = 128*4, 128*4, 3
+ny,nx,nc = ih//4,iw//4, 1
 
 
 start_channels = 256
@@ -23,6 +23,7 @@ groups = 4
 nfeatSN = 256
 
 nfeat = 256
+nfeat = 64
 
 
 # ========= Final prediction =================
@@ -44,13 +45,13 @@ model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 #model.load_weights("models/weights_shufflenet_20230311_070949_pestControl.h5")
 #model.load_weights("models/weights_shufflenet_20230406_153240_pestContro.h5")
 #model.load_weights("./models/weights_shufflenet_20230408_160754_pestControl.h5")
-model.load_weights("/SHARE4ALL/testData/weights_shufflenet_20230707_100351.h5")
+model.load_weights("/SHARE4ALL/testData2/weights_shufflenet_20230715_104519.h5")
 print("Weights Loaded!")
 
 
 # ========= Add postpressing head =================
 
-ypproc = PostprocessingLayer(iw=iw, ih=ih, ndet=300, name="postpressing")(model.output)
+ypproc = PostprocessingLayer(iw=iw, ih=ih, ndet=100, name="postpressing")(model.output)
 modelPost = tf.keras.Model(inputs=model.inputs, outputs=ypproc)
 
 print(modelPost.summary(line_length = 100))

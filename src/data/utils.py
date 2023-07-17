@@ -52,7 +52,7 @@ def readPASCALVOCAnnotation(xmlfile, datapath, classNames, minLength=10, renameD
     """PASCAL VOC"""
 
     ann = PascalVOC.from_xml(xmlfile)
-    imgpath = os.path.join(datapath, "JPEGImages", ann.filename)
+    imgpath = os.path.join(datapath, ann.filename)
     w, h = ann.size.width, ann.size.height
         
     boxes, labels = [], []
