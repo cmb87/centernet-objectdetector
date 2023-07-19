@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, Lambda, MaxPool2D, Reshape, BatchNormalization
@@ -16,24 +16,21 @@ from callbacks import DrawImageCallback
 
 # ========= Settings =================
 ih,iw,ic = 128*4, 128*4, 3
-ny,nx,nc = ih//4,iw//4,4
-
+ny,nx,nc = ih//4,iw//4,3
 
 
 
 csvFilesTrain = [
-    "/SHARE4ALL/testData/stickytrapsWOIn_train.csv",
-    "/SHARE4ALL/testData/farmer1WOIn_train.csv",
+    "/SHARE4ALL/thermografie/am_v1_train.csv",
+
 
 ]
 csvFilesTest = [
-    "/SHARE4ALL/testData/stickytrapsWOIn_test.csv",
-    "/SHARE4ALL/testData/farmer1WOIn_test.csv",
+    "/SHARE4ALL/thermografie/am_v1_test.csv",
 ]
 
-NTRAIN = 2720 + 81
-NTEST = 303 + 10 
-
+NTRAIN = 100
+NTEST = 12
 
 
 learnrate = 1e-4
@@ -45,6 +42,7 @@ groups = 4
 nfeatSN = 256
 
 nfeat = 64
+
 
 # ========= Datapipe =================
 

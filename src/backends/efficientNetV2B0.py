@@ -6,7 +6,7 @@ from keras.initializers import normal, constant, zeros
 from keras.regularizers import l2
 import keras.backend as K
 import tensorflow as tf
-from .layers import ByteLayer
+from .layers import ByteLayer, ChannelAttentionLayer, SpatialAttentionLayer
 
 # https://github.com/xuannianz/keras-CenterNet/blob/master/models/resnet.py
 
@@ -52,11 +52,16 @@ def efficientNet( input_size=512):
         #x = Conv2DTranspose(num_filters, (4, 4), strides=2, use_bias=False, padding='same',
         #                    kernel_initializer='he_normal',
         #                    kernel_regularizer=l2(5e-4))(x)
-
+        
+        x = ChannelAttentionLayer()(x)
+        x = SpatialAttentionLayer()(x)
         x = Conv2D(num_filters, (1, 1), padding='same')(x)
         x  = tf.keras.layers.UpSampling2D( size=(2, 2), data_format=None, interpolation='bilinear')(x)
 
-        y = Conv2D(num_filters, (3, 3), padding='same')(y)
+        y = ChannelAttentionLayer()(y)
+        y = SpatialAttentionLayer()(y)
+        y = Conv2D(num_filters, (1, 1), padding='same')(y)
+
         x = Add()([x,y])
         x = BatchNormalization()(x)
         x = ReLU()(x)
@@ -69,6 +74,11 @@ def efficientNet( input_size=512):
     return model
 
 if (__name__ == "__main__"):
+    import os
+    os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+    
+    os.environ["CUDA_VISIBLE_DEVICES"]="1"
+
 
     model = efficientNet( input_size=512)
     print(model.summary())

@@ -1,32 +1,60 @@
 import tensorflow as tf
 
-def se_unit(x, bottleneck=2):
-    with tf.variable_scope(None, 'SE_module'):
-        n, h, w, c = x.get_shape().as_list()
 
-        kernel_size = resolve_shape(x)
-        x_pool = slim.avg_pool2d(x, kernel_size, stride=1)
-        x_pool = tf.reshape(x_pool, shape=[-1, c])
-        fc = slim.fully_connected(x_pool, bottleneck, activation_fn=tf.nn.relu,
-                                  biases_initializer=None)
-        fc = slim.fully_connected(fc, c, activation_fn=tf.nn.sigmoid,
-                                  biases_initializer=None)
-        if n is None:
-            channel_w = tf.reshape(fc, shape=tf.convert_to_tensor([tf.shape(x)[0], 1, 1, c]))
-        else:
-            channel_w = tf.reshape(fc, shape=[n, 1, 1, c])
+class ChannelAttentionLayer(tf.keras.Model):
+    def __init__(self, **kwargs):
+        super(ChannelAttentionLayer, self).__init__(**kwargs)
 
-        x = tf.multiply(x, channel_w)
-    return x
+    def build(self, input_shape):
 
-def sa_unit(x):
-    with tf.variable_scope(None, 'SA_module'):
-        shape=x.get_shape().as_list()
-        y=tf.keras.layers.conv2d(x,shape[-1],kernel_size=1,stride=1,biases_initializer=None,activation_fn=None)
-        y=tf.keras.layers.batch_norm(y,activation_fn=None, fused=False)
-        y=tf.nn.sigmoid(y)
-        x=tf.multiply(x,y)
-        return x
+        self.B, self.H, self.W = input_shape[0], input_shape[1], input_shape[2]
+        self.nfeat = input_shape[3]
+
+        self.pool = tf.keras.layers.GlobalAveragePooling2D()
+        self.dense1 = tf.keras.layers.Dense(units=2, activation="relu") # bottleneck==2
+        self.dense2 = tf.keras.layers.Dense(units=self.nfeat, activation="sigmoid")
+        self.multi = tf.keras.layers.Multiply()
+
+
+    def call(self, x, training=False):
+        """
+        Takes as input normalized data [0.0-1.0] and transforms them to Cafe normalization
+        :type training: object
+        """
+        w = self.pool(x)
+        w = self.dense1(w)
+        w = self.dense2(w) # [B,C]
+
+        return self.multi([w,x])
+
+
+class SpatialAttentionLayer(tf.keras.Model):
+    def __init__(self, **kwargs):
+        super(SpatialAttentionLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+
+        self.B, self.H, self.W = input_shape[0], input_shape[1], input_shape[2]
+        self.nfeat = input_shape[3]
+
+        self.bn = tf.keras.layers.BatchNormalization()
+        self.conv = tf.keras.layers.Conv2D(self.nfeat, (1, 1), activation='linear',padding='same')
+        self.act = tf.keras.layers.Activation(tf.math.sigmoid)
+        self.multi = tf.keras.layers.Multiply()
+
+    def call(self, x, training=False):
+        """
+        Takes as input normalized data [0.0-1.0] and transforms them to Cafe normalization
+        :type training: object
+        """
+        w = self.conv(x)
+        w = self.bn(w)
+        w = self.act(w)
+
+        return self.multi([w,x])
+
+
+
 
 
 
