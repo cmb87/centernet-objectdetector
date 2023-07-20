@@ -1,6 +1,36 @@
 import tensorflow as tf
 
 
+class WeightedAddLayer(tf.keras.Model):
+    def __init__(self, **kwargs):
+        super(WeightedAddLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+
+        self.B, self.H, self.W = input_shape[0][0], input_shape[0][1], input_shape[0][2]
+        self.nfeat = input_shape[0][3]
+
+        self.concat = tf.keras.layers.Concatenate()
+        self.pool = tf.keras.layers.GlobalAveragePooling2D()
+        self.dense1 = tf.keras.layers.Dense(units=4, activation="relu") # bottleneck==2
+        self.dense2 = tf.keras.layers.Dense(units=self.nfeat, activation="sigmoid")
+        self.multi = tf.keras.layers.Multiply()
+
+
+    def call(self, x, training=False):
+        """
+        Takes as input normalized data [0.0-1.0] and transforms them to Cafe normalization
+        :type training: object
+        """
+
+        w = self.concat(x)
+        w = self.pool(w)
+        w = self.dense1(w)
+        w = self.dense2(w) # [B,C]
+
+        return self.multi([w,x[0]]) + self.multi([(1.0-w),x[1]])
+
+
 class ChannelAttentionLayer(tf.keras.Model):
     def __init__(self, **kwargs):
         super(ChannelAttentionLayer, self).__init__(**kwargs)

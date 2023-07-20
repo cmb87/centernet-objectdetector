@@ -6,7 +6,7 @@ from keras.initializers import normal, constant, zeros
 from keras.regularizers import l2
 import keras.backend as K
 import tensorflow as tf
-from .layers import ByteLayer, ChannelAttentionLayer, SpatialAttentionLayer
+from .layers import ByteLayer, ChannelAttentionLayer, SpatialAttentionLayer, WeightedAddLayer
 
 # https://github.com/xuannianz/keras-CenterNet/blob/master/models/resnet.py
 
@@ -62,7 +62,8 @@ def efficientNet( input_size=512):
         y = SpatialAttentionLayer()(y)
         y = Conv2D(num_filters, (1, 1), padding='same')(y)
 
-        x = Add()([x,y])
+        #x = Add()([x,y])
+        x = WeightedAddLayer()([x,y])
         x = BatchNormalization()(x)
         x = ReLU()(x)
 
