@@ -1,5 +1,5 @@
 from keras_resnet import models as resnet_models
-from keras.layers import Input, Conv2DTranspose, BatchNormalization, ReLU, Conv2D, Lambda, MaxPooling2D, Dropout, Add
+from keras.layers import Input, Conv2DTranspose, BatchNormalization, ReLU, Conv2D, Lambda, MaxPooling2D, Dropout, Add, Concatenate
 from keras.layers import ZeroPadding2D
 from keras.models import Model
 from keras.initializers import normal, constant, zeros
@@ -41,10 +41,10 @@ def efficientNet( input_size=512):
     x5 = Dropout(rate=0.500)(C5)
 
     x = x5
-    num_filters = 256
+    num_filters = 512
 
     for i,y in enumerate([x4,x3,x2]):
-        num_filters = num_filters # // pow(2, i)
+        num_filters = num_filters  // pow(2, i)
         # x = Conv2D(num_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=l2(5e-4))(
         #     x)
         # x = BatchNormalization()(x)
@@ -63,7 +63,8 @@ def efficientNet( input_size=512):
         y = Conv2D(num_filters, (1, 1), padding='same')(y)
 
         #x = Add()([x,y])
-        x = WeightedAddLayer()([x,y])
+       # x = WeightedAddLayer()([x,y])
+        x = Concatenate()([x,y])
         x = BatchNormalization()(x)
         x = ReLU()(x)
 

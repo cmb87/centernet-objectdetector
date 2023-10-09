@@ -20,17 +20,18 @@ ny,nx,nc = ih//4,iw//4,3
 
 
 
+
 csvFilesTrain = [
-    "/SHARE4ALL/thermografie/am_v1_train.csv",
+    "/SHARE4ALL/thermografie/am_v2_train.csv",
 
 
 ]
 csvFilesTest = [
-    "/SHARE4ALL/thermografie/am_v1_test.csv",
+    "/SHARE4ALL/thermografie/am_v2_test.csv",
 ]
 
-NTRAIN = 100
-NTEST = 12
+NTRAIN = 245
+NTEST = 62
 
 
 learnrate = 1e-4
@@ -68,7 +69,7 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
-model.load_weights("./weights_shufflenet_20230714_061805.h5")
+#model.load_weights("./weights_shufflenet_20230714_061805.h5")
 #model.load_weights("./models/weights_shufflenet_20230408_160754_pestControl.h5")
 print(model.summary(line_length = 100))
 

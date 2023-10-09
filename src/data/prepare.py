@@ -102,12 +102,19 @@ if __name__ == "__main__":
     # name = "am_v1"
     # path = "/SHARE4ALL/thermografie/data"
 
-    classNames =  ["tomato"]
-    imageSubPath = "../data/"
-    fileType = "xml"
+    classNames =  ["defect", "blockage", "splitline"]
+    imageSubPath = "../"
+    fileType = "json"
     renameDict={} #{"TR": "IN"}
-    name = "tomato_cn"
-    path = "/SHARE4ALL/testData2/labels"
+    name = "am_v2"
+    path = "/SHARE4ALL/thermografie/data_v2/human_autlabel"
+
+    # classNames =  ["tomato"]
+    # imageSubPath = "../data/"
+    # fileType = "xml"
+    # renameDict={} #{"TR": "IN"}
+    # name = "tomato_cn"
+    # path = "/SHARE4ALL/testData2/labels"
 
 
     if False:

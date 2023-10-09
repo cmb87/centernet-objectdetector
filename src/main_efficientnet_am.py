@@ -21,16 +21,16 @@ ny,nx,nc = ih//4,iw//4,3
 
 
 csvFilesTrain = [
-    "/SHARE4ALL/thermografie/am_v1_train.csv",
+    "/SHARE4ALL/thermografie/am_v2_train.csv",
 
 
 ]
 csvFilesTest = [
-    "/SHARE4ALL/thermografie/am_v1_test.csv",
+    "/SHARE4ALL/thermografie/am_v2_test.csv",
 ]
 
-NTRAIN = 100
-NTEST = 12
+NTRAIN = 245
+NTEST = 62
 
 
 learnrate = 1e-4

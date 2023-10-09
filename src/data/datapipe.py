@@ -40,7 +40,7 @@ DEFAULTTRANSFORM = Compose([
     ], p=1), 
 
     #Lambda(image = mixup, keypoint=nope, bbox=nope, always_apply=False, p=1.0),
-    #Cutout(num_holes=18, max_h_size=18, max_w_size=18, fill_value=0, always_apply=False, p=0.3),
+    Cutout(num_holes=18, max_h_size=100, max_w_size=100, fill_value=0, always_apply=False, p=0.3),
     #Spatter(mean=0.65, std=0.3, gauss_sigma=2, cutout_threshold=0.68, intensity=0.6, mode='rain', always_apply=False, p=0.3)
 ],
 bbox_params=BboxParams(format='albumentations') #  , remove_invisible=True, angle_in_degrees=True

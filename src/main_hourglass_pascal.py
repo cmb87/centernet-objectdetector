@@ -9,9 +9,8 @@ from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, Lambda,
 import pandas as pd
 from data.datapipe import Datapipe
 from losses import centerNetLoss
-from backends.shufflenet_v2 import Shuffle_Net
-
 from callbacks import DrawImageCallback
+from backends.layers import getHourglass
 
 # ========= Settings =================
 ih,iw,ic = 128*4, 128*4, 3
@@ -34,16 +33,15 @@ NTEST = 992 -len(csvFilesTest)
 NTRAIN = 3962 -len(csvFilesTrain)
 
 
-learnrate = 0.25e-4
+learnrate = 1e-4
 batchSize = 7
 
-groups = 4
 start_channels = 256
+groups = 4
 
+nfeatSN = 256
 
-nfeatSN = 512
-
-nfeat = 128
+nfeat = 256
 
 # ========= Datapipe =================
 
@@ -56,8 +54,7 @@ gt  = pipe(csvFilesTest, nx,ny,nc,iw,ih,ic, augment=False, batchSize=batchSize)
 
 # ========= Final prediction =================
 
-model = Shuffle_Net(start_channels=start_channels, groups=groups ,input_shape = (ih,iw,ic))
-#model = get_model()
+model = getHourglass(512, 512, 3, nfeat=128, nfilters=[128,128,256,256,512])
 
 xhead1 = Conv2D(nfeat, (3,3), padding="same", use_bias=True, activation="relu", name="head1-conv13")(model.output)
 xhead2 = Conv2D(nfeat, (3,3), padding="same", use_bias=True, activation="relu", name="head2-conv13")(model.output)
@@ -71,7 +68,7 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
-#model.load_weights("weights_shufflenet_20230724_181757.h5")
+#model.load_weights("weights_hourglass_20230724_181757.h5")
 
 print(model.summary(line_length = 100))
 
@@ -84,7 +81,7 @@ timestamp = str(now)[:19].replace(' ','_').replace(':','').replace('-','')
 print(timestamp)
 
 tfbcb = tf.keras.callbacks.TensorBoard(
-    log_dir=f"./tblogs/shufflenet/{timestamp}", histogram_freq=0, write_graph=True,
+    log_dir=f"./tblogs/hourglass/{timestamp}", histogram_freq=0, write_graph=True,
     write_images=True, update_freq='batch',
     profile_batch=2, embeddings_freq=0, embeddings_metadata=None
 )
@@ -95,7 +92,7 @@ estcb = tf.keras.callbacks.EarlyStopping(
 )
 
 mcpcb = tf.keras.callbacks.ModelCheckpoint(
-    os.path.join(f'weights_shufflenet_{timestamp}.h5'), monitor='loss', verbose=0, save_best_only=True,
+    os.path.join(f'weights_hourglass_{timestamp}.h5'), monitor='loss', verbose=0, save_best_only=True,
     save_weights_only=True, mode='auto', save_freq='epoch',
 )
 
@@ -110,13 +107,13 @@ rlrcb = tf.keras.callbacks.ReduceLROnPlateau(
     min_lr=0,
 )
 
-dricb = DrawImageCallback(logdir=f"./tblogs/shufflenet/{timestamp}",tfdataset=gt, writerName="imagerVal",)
-drtcb = DrawImageCallback(logdir=f"./tblogs/shufflenet/{timestamp}",tfdataset=g, writerName="imagerTrain",)
+dricb = DrawImageCallback(logdir=f"./tblogs/hourglass/{timestamp}",tfdataset=gt, writerName="imagerVal",)
+drtcb = DrawImageCallback(logdir=f"./tblogs/hourglass/{timestamp}",tfdataset=g, writerName="imagerTrain",)
 term =  tf.keras.callbacks.TerminateOnNaN()
 
 
 def scheduler(epoch, lr):
-    if epoch < 80:
+    if epoch < 120:
         return lr
     else:
         return lr * tf.math.exp(-0.1)
@@ -142,7 +139,7 @@ model.fit(
 
 
 
-model.save_weights(f'weights_shufflenet_{timestamp}.h5')
+model.save_weights(f'weights_hourglass_{timestamp}.h5')
 
 
 

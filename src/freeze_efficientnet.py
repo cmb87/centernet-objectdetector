@@ -14,7 +14,7 @@ from postprocessing.freezer import ModelFreezer
 
 # ========= Settings =================
 ih,iw,ic = 128*4, 128*4, 3
-ny,nx,nc = ih//4,iw//4, 4
+ny,nx,nc = ih//4,iw//4, 3
 
 
 start_channels = 256
@@ -42,7 +42,7 @@ yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2,
 
 model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 
-model.load_weights("./weights_efficientnet_20230717_054816.h5")
+model.load_weights("/SHARE4ALL/thermografie/weights_efficientnet_20230804_060711.h5")
 #model.load_weights("./models/weights_efficientnet_20230408_160754_pestControl.h5")
 print(model.summary(line_length = 100))
 
