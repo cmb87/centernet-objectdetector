@@ -69,13 +69,24 @@ def fire_module(x, fs, fe):
     return x
     
 
-
 def channel_shuffle(x, groups):
-    _, width, height, channels = x.get_shape().as_list()
+    # Get shape as Python list
+    _, height, width, channels = x.shape  # This works with KerasTensor
+
+    if channels % groups != 0:
+        raise ValueError(f"channels ({channels}) must be divisible by groups ({groups})")
+
     group_ch = channels // groups
-    x = Reshape([width, height, group_ch, groups])(x)
-    x = Permute([1, 2, 4, 3])(x)
-    x = Reshape([width, height, channels])(x)
+
+    # Reshape: (batch, H, W, channels) → (batch, H, W, group_ch, groups)
+    x = Reshape((height, width, group_ch, groups))(x)
+    
+    # Permute: swap group and channel dim
+    x = Permute((1, 2, 4, 3))(x)  # (batch, H, W, groups, group_ch)
+    
+    # Reshape back
+    x = Reshape((height, width, channels))(x)
+
     return x
 
 

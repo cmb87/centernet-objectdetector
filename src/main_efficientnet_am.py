@@ -11,22 +11,24 @@ from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, Lambda,
 import pandas as pd
 from data.datapipe import Datapipe
 from losses import centerNetLoss
-from backends.efficientNetV2B0 import efficientNet
+#from backends.efficientNetV2B0 import efficientNet
+#from backends.efficientNetV2B0_v2 import efficientNet
+from backends.efficientNetV3 import build_efficientnet_multihead
 from callbacks import DrawImageCallback
 
 # ========= Settings =================
-ih,iw,ic = 128*4, 128*4, 3
-ny,nx,nc = ih//4,iw//4,3
+ih,iw,ic = 256, 256, 3
+ny,nx,nc = ih//4,iw//4,1
 
 
 
 csvFilesTrain = [
-    "/SHARE4ALL/thermografie/am_v2_train.csv",
+    "thermalDet_train.csv",
 
 
 ]
 csvFilesTest = [
-    "/SHARE4ALL/thermografie/am_v2_test.csv",
+    "thermalDet_test.csv",
 ]
 
 NTRAIN = 245
@@ -40,7 +42,6 @@ start_channels = 256
 groups = 4
 
 nfeatSN = 256
-
 nfeat = 64
 
 
@@ -53,25 +54,13 @@ g = pipe(csvFilesTrain, nx,ny,nc,iw,ih,ic, batchSize=batchSize)
 gt  = pipe(csvFilesTest, nx,ny,nc,iw,ih,ic, augment=False, batchSize=batchSize)
 
 
+
 # ========= Final prediction =================
 
-model = efficientNet( input_size=512) # Shuffle_Net(start_channels=start_channels, groups=groups ,input_shape = (ih,iw,ic), nf=nfeatSN)
+model = build_efficientnet_multihead(input_shape=(ih,iw,ic), nfeat=64, nc=nc)
 
-xhead1 = Conv2D(nfeat, (3,3), padding="same", use_bias=True, activation="relu", name="head1-conv13")(model.output)
-xhead2 = Conv2D(nfeat, (3,3), padding="same", use_bias=True, activation="relu", name="head2-conv13")(model.output)
-xhead3 = Conv2D(nfeat, (3,3), padding="same", use_bias=True, activation="relu", name="head3-conv13")(model.output)
-
-xhead1 = Conv2D(nc, (1,1), padding="same", use_bias=True, activation="sigmoid", name="head1-conv21")(xhead1)
-xhead2 = Conv2D(2, (1,1), padding="same", use_bias=True, name="head2-conv22")(xhead2)
-xhead3 = Conv2D(2, (1,1), padding="same", use_bias=True, name="head3-conv23")(xhead3)
-
-yhead = tf.keras.layers.Concatenate(axis=-1, name="head-final")([xhead1, xhead2, xhead3])
-
-model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
-
-#model.load_weights("./weights_efficientnet_20230714_061805.h5")
-#model.load_weights("./models/weights_efficientnet_20230408_160754_pestControl.h5")
 print(model.summary(line_length = 100))
+
 
 
 # ============================================
@@ -93,7 +82,7 @@ estcb = tf.keras.callbacks.EarlyStopping(
 )
 
 mcpcb = tf.keras.callbacks.ModelCheckpoint(
-    os.path.join(f'weights_efficientnet_{timestamp}.h5'), monitor='loss', verbose=0, save_best_only=True,
+    os.path.join(f'weights_efficientnet_{timestamp}.weights.h5'), monitor='val_loss', verbose=0, save_best_only=True,
     save_weights_only=True, mode='auto', save_freq='epoch',
 )
 
@@ -122,10 +111,20 @@ model.compile(
     optimizer=opti
 )
 
+for x, y in g.take(1):
+    print("Input shape:", x.shape)   # Should be (32, 224, 224, 3)
+    print(x)
+    print("Label shape:", y.shape)   # Should be (32, 10)
+    print(y)
+    ypred = model.predict(x)
+    print("Pred shape:", ypred.shape)   # Should be (32, 10)
+
+
+
 
 model.fit(
     g, epochs=3000,
-    callbacks = [tfbcb, mcpcb, estcb, rlrcb, dricb, drtcb, term],
+   # callbacks = [tfbcb, mcpcb, estcb, rlrcb, dricb, drtcb, term],
     validation_data=gt,
     steps_per_epoch=NTRAIN//batchSize,
     validation_steps=NTEST//batchSize,

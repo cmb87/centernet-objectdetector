@@ -15,20 +15,19 @@ from backends.shufflenet import Shuffle_Net
 from callbacks import DrawImageCallback
 
 # ========= Settings =================
-ih,iw,ic = 128*4, 128*4, 3
-ny,nx,nc = ih//4,iw//4,4
-
+ih,iw,ic = 256,256, 3
+ny,nx,nc = ih//4,iw//4,1
 
 
 csvFilesTrain = [
-    "/SHARE4ALL/testData/stickytrapsWOIn_train.csv",
-    "/SHARE4ALL/testData/farmer1WOIn_train.csv",
+    "thermalDet_train.csv",
+
 
 ]
 csvFilesTest = [
-    "/SHARE4ALL/testData/stickytrapsWOIn_test.csv",
-    "/SHARE4ALL/testData/farmer1WOIn_test.csv",
+    "thermalDet_test.csv",
 ]
+
 
 NTRAIN = 2720 + 81
 NTEST = 303 + 10 
@@ -94,7 +93,7 @@ estcb = tf.keras.callbacks.EarlyStopping(
 )
 
 mcpcb = tf.keras.callbacks.ModelCheckpoint(
-    os.path.join(f'weights_shufflenet_{timestamp}.h5'), monitor='loss', verbose=0, save_best_only=True,
+    os.path.join(f'weights_shufflenet_{timestamp}.weights.h5'), monitor='loss', verbose=0, save_best_only=True,
     save_weights_only=True, mode='auto', save_freq='epoch',
 )
 

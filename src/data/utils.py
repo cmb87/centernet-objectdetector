@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import random
 import os, json, glob
-from pascal import PascalVOC
 
+from pascal import annotation_from_xml
 
 # =================================================
-def readJsonAnnotation(jsonfile, datapath, classNames, minLength=10, renameDict={}, **kwargs):
+def readJsonAnnotation(jsonfile, datapath, classNames, minLength=0, renameDict={}, **kwargs):
     """Read JSON Annotation LABELME"""
     with open(jsonfile, 'r') as f1:
         data = json.load(f1)
@@ -51,7 +51,7 @@ def readJsonAnnotation(jsonfile, datapath, classNames, minLength=10, renameDict=
 def readPASCALVOCAnnotation(xmlfile, datapath, classNames, minLength=10, renameDict={}, **kwargs):
     """PASCAL VOC"""
 
-    ann = PascalVOC.from_xml(xmlfile)
+    ann = annotation_from_xml(xmlfile)
     imgpath = os.path.join(datapath, ann.filename)
     w, h = ann.size.width, ann.size.height
         

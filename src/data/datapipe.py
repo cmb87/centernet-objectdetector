@@ -7,8 +7,8 @@ import matplotlib.cm as cm
 
 
 from albumentations import (
-    Compose, RandomBrightness, JpegCompression, HueSaturationValue, RandomContrast, HorizontalFlip,Crop ,
-    Rotate, KeypointParams, Cutout, Superpixels, Spatter, Sharpen, OpticalDistortion, Affine, Perspective, FancyPCA, ToSepia,
+    Compose, RandomBrightnessContrast, HueSaturationValue, HorizontalFlip,Crop ,
+    Rotate, KeypointParams, CoarseDropout, Superpixels, Spatter, Sharpen, OpticalDistortion, Affine, Perspective, FancyPCA, ToSepia,
     OneOf, RGBShift, ShiftScaleRotate, CenterCrop, VerticalFlip, RandomCrop, Lambda, BboxParams,ToGray, GaussNoise, ISONoise 
 )
 
@@ -18,15 +18,15 @@ from .labels import encodeTF, drawTF
 DEFAULTTRANSFORM = Compose([
     # Rotate(limit=50, p=0.5),
     # Lambda(image = cartoonize, keypoint=nope, bbox=nope, always_apply=False, p=1.0),
-    ToSepia(always_apply=False, p=0.1),
-    RandomContrast(limit=0.2, p=0.3),
+    ToSepia(p=0.1),
+
     ToGray(p=0.2),
-    Sharpen (alpha=(0.2, 0.5), lightness=(0.5, 1.0), always_apply=False, p=0.3),
-    JpegCompression(quality_lower=85, quality_upper=100, p=0.3),
+    Sharpen (alpha=(0.2, 0.5), lightness=(0.5, 1.0), p=0.3),
+   # JpegCompression(quality_lower=85, quality_upper=100, p=0.3),
     OneOf([
         HueSaturationValue(p=0.3), 
         RGBShift(p=0.3),
-        RandomBrightness(limit=0.1),  
+        RandomBrightnessContrast(brightness_limit=(-0.2, 0.3), p=0.8),  
     ], p=1), 
 
     # Superpixels(p_replace=0.5, n_segments=128, max_size=128, interpolation=1, always_apply=False, p=0.9),
@@ -35,12 +35,12 @@ DEFAULTTRANSFORM = Compose([
     HorizontalFlip(),
     VerticalFlip(),
     OneOf([
-      ISONoise(p=0.3),
-      GaussNoise(p=0.3),
+      ISONoise(p=0.1),
+      GaussNoise(p=0.1),
     ], p=1), 
 
     #Lambda(image = mixup, keypoint=nope, bbox=nope, always_apply=False, p=1.0),
-    Cutout(num_holes=18, max_h_size=100, max_w_size=100, fill_value=0, always_apply=False, p=0.3),
+    CoarseDropout(num_holes_range=(3, 6),hole_height_range=(10, 100),hole_width_range=(10, 100),fill="random_uniform", p=0.3),
     #Spatter(mean=0.65, std=0.3, gauss_sigma=2, cutout_threshold=0.68, intensity=0.6, mode='rain', always_apply=False, p=0.3)
 ],
 bbox_params=BboxParams(format='albumentations') #  , remove_invisible=True, angle_in_degrees=True
@@ -122,13 +122,13 @@ class Datapipe:
         return imgPath, bboxes, labels, *args
 
     # ============================
-    def _gaussianLabel(self, img, bboxes, labels, *args):
+    def _gaussianLabel(self, img, bboxes, labels):
         
         bboxes = tf.clip_by_value(bboxes,0.0,0.999)
         labels = tf.one_hot(labels, depth=self.nc)
         y = encodeTF(bboxes, labels, self.nx, self.ny)
         
-        return img, y, *args
+        return img, y
 
     # ============================
     def _filter(self, img, bboxes, labels, *args):
@@ -174,11 +174,18 @@ class Datapipe:
 
         ds = ds.filter(self._filter)
 
+        # See https://stackoverflow.com/questions/62585490/as-list-is-not-defined-on-an-unknown-tensorshape-on-y-t-rank-leny-t-shape-a
+        def _fixup_shape(x, y):
+            x.set_shape([None, None, None, 3])
+            y.set_shape([None, None, None, 5]) # I have 19 classes
+            return x, y
+
         ds = ds.map(self._gaussianLabel)
-
-        ds = ds.batch(batchSize, drop_remainder=True)
         ds = ds.repeat()
-
+        ds = ds.batch(batchSize)
+        ds = ds.map(_fixup_shape)
+        ds = ds.prefetch(tf.data.AUTOTUNE)
+  
         return ds
 
 
@@ -192,16 +199,19 @@ if __name__ == "__main__":
     ny,nx,nc = ih//4,iw//4,4
 
 
-    ds = pipe(["synthetic_train.csv", "sticktraps_train.csv"], nx,ny,nc,iw,ih,ic)
+    ds = pipe(["../thermalDet_train.csv"], nx,ny,nc,iw,ih,ic)
 
-    for (x,y,p) in ds.take(13):
+    for (x,y) in ds.take(13):
         
         imgsAug = drawTF(x, y, thres=0.1, normalizedImage=True)
+
+        print(x.shape, y.shape)
 
         if True:
   
             for b in range(x.shape[0]):
-                plt.title(p[b])
+               # plt.title(p[b])
                 plt.imshow(imgsAug[b,...])
+                plt.savefig(f"augmented_{b}.png")
                 plt.show()
             

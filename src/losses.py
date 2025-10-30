@@ -6,6 +6,7 @@ def centerNetLoss(ytrue, ypred, alpha=2.0, beta=4.0):
 
     C = tf.shape(ytrue)[-1] - 4
 
+
     hmTrue, whLogTrue, pdeltaTrue = tf.split(ytrue, [C, 2, 2], axis=-1)
     hmPred, whLogPred, pdeltaPred = tf.split(ypred, [C, 2, 2], axis=-1)
     hmPred = tf.clip_by_value(hmPred, 1e-4, 1.0 - 1e-4)

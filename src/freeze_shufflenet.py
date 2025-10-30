@@ -13,9 +13,12 @@ from backends.layers import PostprocessingLayer
 from postprocessing.freezer import ModelFreezer
 
 # ========= Settings =================
-ih,iw,ic = 128*4, 128*4, 3
-ny,nx,nc = ih//4,iw//4, 1
+ih,iw,ic = 256,256, 3
+ny,nx,nc = ih//4,iw//4,1
 
+
+learnrate = 1e-4
+batchSize = 6
 
 start_channels = 256
 groups = 4
@@ -23,7 +26,6 @@ groups = 4
 nfeatSN = 256
 
 nfeat = 256
-nfeat = 64
 
 
 # ========= Final prediction =================
@@ -45,7 +47,7 @@ model = tf.keras.Model(inputs=model.inputs, outputs=yhead)
 #model.load_weights("models/weights_shufflenet_20230311_070949_pestControl.h5")
 #model.load_weights("models/weights_shufflenet_20230406_153240_pestContro.h5")
 #model.load_weights("./models/weights_shufflenet_20230408_160754_pestControl.h5")
-model.load_weights("/SHARE4ALL/testData2/weights_shufflenet_20230715_104519.h5")
+model.load_weights("weights_shufflenet_20251029_200330.weights.h5")
 print("Weights Loaded!")
 
 

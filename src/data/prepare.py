@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
-
+import cv2
 
 from utils import readJsonAnnotation, readPASCALVOCAnnotation
 
@@ -43,93 +43,15 @@ def createTrainingFile(path, classNames, imageSubPath="./", fileType="json", **k
 
 if __name__ == "__main__":
 
-    # classNames =  ["NC", "WF", "MR", "IN"]
-    # imageSubPath = "./"
-    # fileType = "json"
-    # renameDict={"TR": "IN"}
-    # name = "outdoor1Train"
-    # path = "/SHARE4ALL/testData/outdoor1Train"
-
-
-    #classNames =  ["NC", "WF", "MR", "IN"]
-    #imageSubPath = "./"
-    #fileType = "json"
-    #renameDict={"TR": "IN"}
-    #name = "outdoor2Train"
-    #path = "/SHARE4ALL/testData/outdoor2Train"
-
-   # classNames =  ["NC", "WF", "MR", "IN"]
-    #imageSubPath = "./"
-   # fileType = "json"
-   # renameDict={"TR": "IN"}
-   # name = "farmer1Train"
-   # path = "/SHARE4ALL/testData/farmer1Train"
-
-    # classNames =  ["NC", "WF", "MR", "IN", "TR"]
-    # imageSubPath = "./"
-    # fileType = "json"
-    # renameDict={} #{"TR": "IN"}
-    # name = "stickytraps"
-    # path = "/SHARE4ALL/testData/stickytraps"
-
-    # classNames =  ["NC", "WF", "MR", "IN", "TR"]
-    # imageSubPath = "./"
-    # fileType = "json"
-    # renameDict={} #{"TR": "IN"}
-    # name = "farmer1Tiny"
-    # path = "/SHARE4ALL/testData/farmer1Tiny"
- 
-
-
-    # classNames =  ["NC", "WF", "MR", "TR"]
-    # imageSubPath = "./"
-    # fileType = "json"
-    # renameDict={} #{"TR": "IN"}
-    # name = "stickytrapsWOIn"
-    # path = "/SHARE4ALL/testData/stickytraps"
-
-    # classNames =  ["NC", "WF", "MR", "TR"]
-    # imageSubPath = "./"
-    # fileType = "json"
-    # renameDict={} #{"TR": "IN"}
-    # name = "farmer1WOIn"
-    # path = "/SHARE4ALL/testData/farmer1Tiny"
- 
-    # classNames =  ["delle", "riss", "verstopft"]
-    # imageSubPath = "./"
-    # fileType = "json"
-    # renameDict={} #{"TR": "IN"}
-    # name = "am_v1"
-    # path = "/SHARE4ALL/thermografie/data"
-
-    classNames =  ["defect", "blockage", "splitline"]
-    imageSubPath = "../"
+    classNames =  ["Drone"]
+    imageSubPath = "../images"
     fileType = "json"
-    renameDict={} #{"TR": "IN"}
-    name = "am_v2"
-    path = "/SHARE4ALL/thermografie/data_v2/human_autlabel"
-
-    # classNames =  ["tomato"]
-    # imageSubPath = "../data/"
-    # fileType = "xml"
-    # renameDict={} #{"TR": "IN"}
-    # name = "tomato_cn"
-    # path = "/SHARE4ALL/testData2/labels"
+    renameDict={}
+    name = "thermalDet"
+    path = "/home/peeren/projects/uav-detection-centernet/data/labels"
 
 
-    if False:
-        name = "VOC2007p12"
-        #name = "VOC2007"
-        renameDict={}
-        classNames =  ["person","bird", "cat", "cow", "dog", "horse", "sheep", "aeroplane", "bicycle", "boat", "bus", "car", "motorbike", "train", "bottle", "chair", "diningtable","pottedplant", "sofa", "tvmonitor"]
-        imageSubPath = "../"
-        fileType = "xml"
 
-        path =     "/SHARE4ALL/pascalVOC/VOC2007p12/Annotations"
-        #path = "/SHARE4ALL/pascalVOC/VOC2007/test/VOCdevkit/VOC2007/Annotations"
-
-        
-    
 
     df = createTrainingFile(path, classNames, imageSubPath, fileType=fileType, renameDict=renameDict)
 

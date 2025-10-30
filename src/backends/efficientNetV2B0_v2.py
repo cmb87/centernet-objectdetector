@@ -1,8 +1,7 @@
-from keras_resnet import models as resnet_models
+
 from keras.layers import Input, Conv2DTranspose, BatchNormalization, ReLU, Conv2D, Lambda, MaxPooling2D, Dropout, Add, Concatenate
 from keras.layers import ZeroPadding2D
 from keras.models import Model
-from keras.initializers import normal, constant, zeros
 from keras.regularizers import l2
 import keras.backend as K
 import tensorflow as tf
@@ -27,8 +26,7 @@ def efficientNet( input_size=512):
  
     efficientNet.trainable =False
 
-    for n,l in enumerate(efficientNet.layers):
-        print(n, l.name, l.get_output_at(0).get_shape().as_list())
+
 
     C2 = efficientNet.layers[18].output # 128
     C3 = efficientNet.layers[32].output # 64
@@ -62,9 +60,9 @@ def efficientNet( input_size=512):
         y = SpatialAttentionLayer()(y)
         y = Conv2D(num_filters, (1, 1), padding='same')(y)
 
-        #x = Add()([x,y])
+        x = Add()([x,y])
        # x = WeightedAddLayer()([x,y])
-        x = Concatenate()([x,y])
+       # x = Concatenate()([x,y])
         x = BatchNormalization()(x)
         x = ReLU()(x)
 
