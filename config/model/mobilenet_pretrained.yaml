@@ -1,0 +1,3 @@
+name: mobilenet_pretrained
+input_size: [256, 256, 3]
+num_features: 256

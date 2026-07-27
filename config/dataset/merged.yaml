@@ -1,0 +1,7 @@
+name: merged
+csv_train: ["merged_drone_train.csv"]
+csv_test: ["merged_drone_test.csv"]
+num_train_samples: 8956
+num_test_samples: 2239
+class_num: 1
+class_list: ["uav"]

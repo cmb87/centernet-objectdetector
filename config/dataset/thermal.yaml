@@ -1,0 +1,7 @@
+name: thermal
+csv_train: ["thermalDet_train.csv"]
+csv_test: ["thermalDet_test.csv"]
+num_train_samples: 2801
+num_test_samples: 313
+class_num: 1
+class_list: ["uav"]

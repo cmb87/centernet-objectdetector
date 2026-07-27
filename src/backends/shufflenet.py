@@ -204,7 +204,7 @@ def Shuffle_Net(start_channels, groups = 2,  nf=256, input_shape = (224,224,3)):
         upsample3 = fire_module(upsample3, nf//2, nf)
 
         x = Dropout(rate=0.25)(x4)
-        x = ChannelAttentionLayer()(x4)
+        x = ChannelAttentionLayer()(x)
         x = SpatialAttentionLayer()(x)
         x = convolution(x,filters=nf,k=1,s=1)
 

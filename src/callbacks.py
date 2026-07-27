@@ -217,10 +217,10 @@ class DrawImageCallback(tf.keras.callbacks.Callback):
                 )
 
                 tf.summary.image(
-                    "hmPred", hmTrue, max_outputs=25, step=self.step_number
+                    "hmPred", hmPred, max_outputs=25, step=self.step_number
                 )
                 tf.summary.image(
-                    "hmTrue", hmPred, max_outputs=25, step=self.step_number
+                    "hmTrue", hmTrue, max_outputs=25, step=self.step_number
                 )
 
 

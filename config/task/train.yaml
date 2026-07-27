@@ -1,0 +1,36 @@
+task: train
+epochs: 300
+batch_size: 16
+learning_rate: 1e-4
+gpu_id: "0"
+
+augmentations:
+  # Toggle overall data augmentation on or off
+  enabled: true
+
+  # Thermal mode (when true, filters out color modifications like sepia/HSV/RGB shift)
+  thermal_mode: true
+
+  # Bounding Box Quality Limits (filters out tiny/invisible cut-off boxes - matches YOLO's 1e-8 Outliers removal)
+  min_area: 1e-8
+  min_visibility: 0.0
+
+  # --- YOLO Style Augmentation Probabilities ---
+  mosaic_p: 1.0
+  mixup_p: 1.0
+  random_crop_p: 1.0
+  horizontal_flip_p: 0.5
+  vertical_flip_p: 0.0
+
+  # --- Other Optional Layers (set to 0.0 to match YOLO's clean style)
+  to_sepia_p: 0.0
+  to_gray_p: 0.0
+  sharpen_p: 0.0
+  motion_blur_p: 0.0
+  hsv_p: 0.0
+  rgb_shift_p: 0.0
+  brightness_contrast_p: 0.0
+  shift_scale_rotate_p: 0.0
+  iso_noise_p: 0.0
+  gauss_noise_p: 0.0
+  coarse_dropout_p: 0.0

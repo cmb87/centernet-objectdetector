@@ -1,0 +1,46 @@
+name: dev
+task:
+  task: train
+  epochs: 1
+  batch_size: 16
+  learning_rate: 0.0001
+  gpu_id: 0
+  augmentations:
+    enabled: true
+    thermal_mode: true
+    min_area: 1.0e-08
+    min_visibility: 0.0
+    mosaic_p: 1.0
+    mixup_p: 1.0
+    random_crop_p: 1.0
+    horizontal_flip_p: 0.5
+    vertical_flip_p: 0.0
+    to_sepia_p: 0.0
+    to_gray_p: 0.0
+    sharpen_p: 0.0
+    motion_blur_p: 0.0
+    hsv_p: 0.0
+    rgb_shift_p: 0.0
+    brightness_contrast_p: 0.0
+    shift_scale_rotate_p: 0.0
+    iso_noise_p: 0.0
+    gauss_noise_p: 0.0
+    coarse_dropout_p: 0.0
+dataset:
+  name: merged
+  csv_train:
+  - merged_drone_train.csv
+  csv_test:
+  - merged_drone_test.csv
+  num_train_samples: 8956
+  num_test_samples: 2239
+  class_num: 1
+  class_list:
+  - uav
+model:
+  name: mobilenet_pretrained
+  input_size:
+  - 256
+  - 256
+  - 3
+  num_features: 256

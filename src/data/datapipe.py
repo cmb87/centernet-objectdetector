@@ -72,35 +72,110 @@ class Datapipe:
 
 
     # ============================
+    # ============================
     def _processAugment(self, img, bboxes, labels, *args):
 
         def aug_fn(img, bboxes, labels, iw, ih):
+            import random
             
-            boxes_ext = [b.tolist() + [l] for b,l in zip(bboxes,labels)]
-            data = {"image": np.uint8(255*img), "bboxes":boxes_ext}
-
-            aug_data = self.transform(**data)
+            img_uint8 = np.uint8(255 * img)
+            boxes_ext = [b.tolist() for b in bboxes]
+            labels_ext = labels.tolist()
+            
+            data = {
+                "image": img_uint8,
+                "bboxes": boxes_ext,
+                "labels": labels_ext
+            }
+            
+            # --- Dynamic Mosaic Preparation ---
+            transform_cfg = getattr(self, "transform_cfg", None)
+            if transform_cfg and transform_cfg.get("mosaic_p", 0.0) > 0 and random.random() < transform_cfg.get("mosaic_p", 0.0):
+                mosaic_metadata = []
+                all_records = getattr(self, "all_records", [])
+                if len(all_records) >= 3:
+                    sampled = random.sample(all_records, 3)
+                    for s_path, s_bboxes_str, s_labels_str in sampled:
+                        try:
+                            s_img = cv2.imread(s_path)
+                            if s_img is not None:
+                                s_img = cv2.cvtColor(s_img, cv2.COLOR_BGR2RGB)
+                                s_img = cv2.resize(s_img, (iw, ih))
+                                s_bboxes = eval(s_bboxes_str)
+                                s_labels = eval(s_labels_str)
+                                mosaic_metadata.append({
+                                    'image': s_img,
+                                    'bboxes': s_bboxes,
+                                    'labels': s_labels
+                                })
+                        except Exception as e:
+                            pass
+                if mosaic_metadata:
+                    data["mosaic_metadata"] = mosaic_metadata
+            
+            # Decide if we are using the new label_fields parameter scheme or the legacy append-style format
+            is_using_label_fields = hasattr(self, "transform") and self.transform is not None and "labels" in self.transform.processors
+            if not is_using_label_fields:
+                data_old = {
+                    "image": img_uint8,
+                    "bboxes": [b.tolist() + [l] for b, l in zip(bboxes, labels)]
+                }
+                aug_data = self.transform(**data_old)
+            else:
+                aug_data = self.transform(**data)
+                
             aug_img = aug_data["image"]
-            aug_img = tf.cast(aug_img/255.0, tf.float32)
-            aug_img = tf.image.resize(aug_img, size=[ih , iw ])
-
-            bboxes = np.asarray([b[:4] for b in aug_data["bboxes"]]).astype(np.float32)
-            labels = np.asarray([b[-1] for b in aug_data["bboxes"]]).astype(np.int32)
-
-            if len(bboxes.shape) > 1:
-                xm = 0.5*(bboxes[:,0]+bboxes[:,2])
-                ym = 0.5*(bboxes[:,1]+bboxes[:,3])
-
-                idx = ( xm >= 0.0) & ( xm < 1.0) & ( ym >= 0.0) & ( ym < 1.0)
-
-                return aug_img, bboxes[idx,:], labels[idx]
-
-            return aug_img, bboxes, labels
+            
+            if "labels" in aug_data:
+                aug_boxes = list(aug_data["bboxes"])
+                aug_labels = list(aug_data["labels"])
+            else:
+                aug_boxes = [b[:4] for b in aug_data["bboxes"]]
+                aug_labels = [b[-1] for b in aug_data["bboxes"]]
+                
+            # --- Dynamic MixUp Augmentation ---
+            if transform_cfg and transform_cfg.get("mixup_p", 0.0) > 0 and random.random() < transform_cfg.get("mixup_p", 0.0):
+                all_records = getattr(self, "all_records", [])
+                if len(all_records) >= 1:
+                    s_path, s_bboxes_str, s_labels_str = random.choice(all_records)
+                    try:
+                        s_img = cv2.imread(s_path)
+                        if s_img is not None:
+                            s_img = cv2.cvtColor(s_img, cv2.COLOR_BGR2RGB)
+                            s_img = cv2.resize(s_img, (iw, ih))
+                            s_bboxes = eval(s_bboxes_str)
+                            s_labels = eval(s_labels_str)
+                            
+                            # Blend images
+                            lam = np.random.beta(1.0, 1.0)
+                            aug_img = (lam * aug_img + (1.0 - lam) * s_img).astype(np.uint8)
+                            
+                            # Merge labels and bboxes
+                            aug_boxes = list(aug_boxes) + s_bboxes
+                            aug_labels = list(aug_labels) + s_labels
+                    except Exception as e:
+                        pass
+                        
+            # Resize and scale back to float32
+            aug_img = tf.cast(aug_img / 255.0, tf.float32)
+            aug_img = tf.image.resize(aug_img, size=[ih, iw])
+            
+            # Format outputs
+            bboxes_out = np.asarray(aug_boxes).astype(np.float32)
+            labels_out = np.asarray(aug_labels).astype(np.int32)
+            
+            if len(bboxes_out.shape) > 1 and bboxes_out.shape[0] > 0:
+                xm = 0.5 * (bboxes_out[:, 0] + bboxes_out[:, 2])
+                ym = 0.5 * (bboxes_out[:, 1] + bboxes_out[:, 3])
+                idx = (xm >= 0.0) & (xm < 1.0) & (ym >= 0.0) & (ym < 1.0)
+                return aug_img, bboxes_out[idx, :], labels_out[idx]
+                
+            return aug_img, bboxes_out, labels_out
 
         aug_img, bboxes, labels = tf.numpy_function(
             func=aug_fn,
             inp=[img, bboxes, labels, self.iw, self.ih],
-            Tout=[tf.float32,tf.float32,tf.int32]
+            Tout=[tf.float32, tf.float32, tf.int32]
         )
 
         return aug_img, bboxes, labels, *args
@@ -141,13 +216,139 @@ class Datapipe:
         return ds
     
     # ============================
-    def __call__(self, csvFiles, nx, ny, nc, iw, ih, ic, batchSize=3, sigma=0.02, shuffle_buffer_size=8000, nrepeat=1, augment=True, shuffle=True, transform=None):
+    # ============================
+    def __call__(self, csvFiles, nx, ny, nc, iw, ih, ic, batchSize=3, sigma=0.02, shuffle_buffer_size=8000, nrepeat=1, augment=True, shuffle=True, transform=None, transform_cfg=None):
 
         self.nx,self.ny = nx, ny
         self.iw,self.ih = iw, ih
         self.ic = ic
         self.nc = nc
-        self.transform = DEFAULTTRANSFORM if transform is None else transform
+        self.transform_cfg = transform_cfg
+        
+        # Parse CSV files for dynamic Mosaic and MixUp loading
+        self.all_records = []
+        import csv
+        import os
+        for csvFile in csvFiles:
+            if os.path.exists(csvFile):
+                try:
+                    with open(csvFile, "r", encoding="utf-8") as f:
+                        reader = csv.DictReader(f)
+                        for row in reader:
+                            row = {k.strip() if k is not None else k: v for k, v in row.items()}
+                            img_path = row.get("imagePath") or row.get("File") or row.get("filename")
+                            bboxes_str = row.get("bboxes")
+                            labels_str = row.get("labels")
+                            if img_path and bboxes_str and labels_str:
+                                self.all_records.append((img_path, bboxes_str, labels_str))
+                except Exception as e:
+                    print(f"Warning: Failed to load records from {csvFile} for Mosaic/MixUp: {e}")
+        
+        if transform is not None:
+            self.transform = transform
+        elif transform_cfg is not None:
+            import albumentations as A
+            import cv2
+            
+            is_thermal = transform_cfg.get("thermal_mode", False)
+            transforms = []
+            
+            # 0. Mosaic (multi-image combination) - YOLO style
+            if transform_cfg.get("mosaic_p", 0.0) > 0:
+                transforms.append(A.Mosaic(
+                    grid_yx=(2, 2),
+                    target_size=(ih, iw),
+                    cell_shape=(ih // 2, iw // 2),
+                    center_range=(0.4, 0.6),
+                    fit_mode="cover",
+                    p=transform_cfg.mosaic_p
+                ))
+            
+            # 1. Multi-scale detail zooming / Random Crop (boosts small-object resolution)
+            if transform_cfg.get("random_crop_p", 0) > 0:
+                transforms.append(A.RandomResizedCrop(
+                    size=(ih, iw), 
+                    scale=(0.5, 1.0), 
+                    p=transform_cfg.random_crop_p
+                ))
+            
+            # 2. Base Contrast & Sharpness (safe and useful for both thermal and RGB)
+            if transform_cfg.get("sharpen_p", 0) > 0:
+                transforms.append(A.Sharpen(alpha=(0.2, 0.5), lightness=(0.5, 1.0), p=transform_cfg.sharpen_p))
+            if transform_cfg.get("motion_blur_p", 0) > 0:
+                transforms.append(A.MotionBlur(p=transform_cfg.motion_blur_p))
+                
+            # 3. Color shifting - ONLY active when NOT in thermal mode
+            if not is_thermal:
+                if transform_cfg.get("to_sepia_p", 0) > 0:
+                    transforms.append(A.ToSepia(p=transform_cfg.to_sepia_p))
+                if transform_cfg.get("to_gray_p", 0) > 0:
+                    transforms.append(A.ToGray(p=transform_cfg.to_gray_p))
+                    
+                one_of_color = []
+                if transform_cfg.get("hsv_p", 0) > 0:
+                    one_of_color.append(A.HueSaturationValue(p=transform_cfg.hsv_p))
+                if transform_cfg.get("rgb_shift_p", 0) > 0:
+                    one_of_color.append(A.RGBShift(p=transform_cfg.rgb_shift_p))
+                if one_of_color:
+                    transforms.append(A.OneOf(one_of_color, p=1.0))
+            
+            # 4. Thermal-safe brightness range modulator
+            if transform_cfg.get("brightness_contrast_p", 0) > 0:
+                transforms.append(A.RandomBrightnessContrast(
+                    brightness_limit=(-0.2, 0.3), 
+                    contrast_limit=(-0.2, 0.3), 
+                    p=transform_cfg.brightness_contrast_p
+                ))
+                
+            # 5. Spatial geometry modifications
+            if transform_cfg.get("shift_scale_rotate_p", 0) > 0:
+                transforms.append(A.ShiftScaleRotate(
+                    scale_limit=[-0.15, 0.15], 
+                    shift_limit=[0.0, 0.15], 
+                    border_mode=cv2.BORDER_REPLICATE, 
+                    p=transform_cfg.shift_scale_rotate_p
+                ))
+                
+            if transform_cfg.get("horizontal_flip_p", 0) > 0:
+                transforms.append(A.HorizontalFlip(p=transform_cfg.horizontal_flip_p))
+            if transform_cfg.get("vertical_flip_p", 0) > 0:
+                transforms.append(A.VerticalFlip(p=transform_cfg.vertical_flip_p))
+                
+            # 6. Low-level sensor static modelings (Noise)
+            one_of_noise = []
+            if transform_cfg.get("iso_noise_p", 0) > 0:
+                one_of_noise.append(A.ISONoise(p=transform_cfg.iso_noise_p))
+            if transform_cfg.get("gauss_noise_p", 0) > 0:
+                one_of_noise.append(A.GaussNoise(p=transform_cfg.gauss_noise_p))
+            if one_of_noise:
+                transforms.append(A.OneOf(one_of_noise, p=1.0))
+                
+            # 7. Coarse information dropping (Regularization)
+            if transform_cfg.get("coarse_dropout_p", 0) > 0:
+                transforms.append(A.CoarseDropout(
+                    num_holes_range=(3, 6), 
+                    hole_height_range=(10, 100), 
+                    hole_width_range=(10, 100), 
+                    fill="random_uniform", 
+                    p=transform_cfg.coarse_dropout_p
+                ))
+                
+            # 8. Filter out cut-off boxes or zero-pixel labels dynamically
+            min_area = transform_cfg.get("min_area", 0)
+            min_visibility = transform_cfg.get("min_visibility", 0.0)
+            
+            self.transform = A.Compose(
+                transforms, 
+                bbox_params=A.BboxParams(
+                    format='albumentations',
+                    min_area=min_area,
+                    min_visibility=min_visibility,
+                    label_fields=['labels']
+                )
+            )
+        else:
+            self.transform = DEFAULTTRANSFORM
 
         # https://stackoverflow.com/questions/54843448/how-to-zip-tensorflow-dataset-and-train-in-keras-correctly
         # https://stackoverflow.com/questions/64725275/how-to-configure-dataset-pipelines-with-tensorflow-make-csv-dataset-for-keras-mo
@@ -177,7 +378,7 @@ class Datapipe:
         # See https://stackoverflow.com/questions/62585490/as-list-is-not-defined-on-an-unknown-tensorshape-on-y-t-rank-leny-t-shape-a
         def _fixup_shape(x, y):
             x.set_shape([None, None, None, 3])
-            y.set_shape([None, None, None, 5]) # I have 19 classes
+            y.set_shape([None, None, None, self.nc + 4])
             return x, y
 
         ds = ds.map(self._gaussianLabel)

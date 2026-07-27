@@ -1,0 +1,5 @@
+name: shufflenet
+input_size: [256, 256, 3]
+num_features: 256
+start_channels: 256
+groups: 4

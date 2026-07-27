@@ -1,0 +1,11 @@
+hydra:
+  run:
+    dir: runs/${task.task}/${model.name}_${name}
+
+name: dev
+
+defaults:
+  - _self_
+  - task: train
+  - dataset: thermal
+  - model: shufflenet
