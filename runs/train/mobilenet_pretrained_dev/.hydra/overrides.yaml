@@ -1,5 +1,3 @@
 - model=mobilenet_pretrained
-- dataset=merged
 - task.gpu_id=0
 - task.batch_size=16
-- task.epochs=1

@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Dropout, BatchNormalization, Conv2D, Lambda,
 
 import pandas as pd
 from data.datapipe import Datapipe
-from losses import centerNetLoss
+from losses import centerNetLoss, cls_loss, reg_loss, wh_loss, offset_loss
 #from backends.efficientNetV2B0 import efficientNet
 #from backends.efficientNetV2B0_v2 import efficientNet
 from backends.efficientNetV3 import build_efficientnet_multihead
@@ -108,7 +108,8 @@ opti = tf.keras.optimizers.Adam(learnrate)
 
 model.compile(
     loss=centerNetLoss,
-    optimizer=opti
+    optimizer=opti,
+    metrics=[cls_loss, reg_loss, wh_loss, offset_loss]
 )
 
 for x, y in g.take(1):

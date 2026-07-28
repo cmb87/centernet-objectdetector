@@ -7,5 +7,5 @@ name: dev
 defaults:
   - _self_
   - task: train
-  - dataset: thermal
-  - model: shufflenet
+  - dataset: merged
+  - model: mobilenet_pretrained

@@ -9,7 +9,7 @@ import matplotlib.cm as cm
 
 
 # ===============================================
-def _gaussian_radius(height, width, min_overlap=0.7):
+def _gaussian_radius(height, width, min_overlap=0.4):
     a1 = 1.
     b1 = (height + width)
     c1 = width * height * (1. - min_overlap) / (1. + min_overlap)

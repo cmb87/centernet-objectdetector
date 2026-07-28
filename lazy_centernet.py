@@ -38,7 +38,7 @@ import hydra
 from omegaconf import DictConfig
 
 from src.data.datapipe import Datapipe
-from src.losses import centerNetLoss
+from src.losses import centerNetLoss, cls_loss, reg_loss, wh_loss, offset_loss
 from src.callbacks import DrawImageCallback
 
 def get_next_version_dir(base_dir: str) -> str:
@@ -153,7 +153,7 @@ def main(cfg: DictConfig) -> None:
         log_dir=os.path.join(log_dir, "tblogs"),
         write_graph=True,
         write_images=True,
-        update_freq='epoch'
+        update_freq='batch'
     )
 
     mcpcb = tf.keras.callbacks.ModelCheckpoint(
@@ -179,7 +179,11 @@ def main(cfg: DictConfig) -> None:
 
     # 7. Compile and Fit CenterNet Model
     optimizer = tf.keras.optimizers.Adam(learning_rate=cfg.task.learning_rate)
-    model.compile(loss=centerNetLoss, optimizer=optimizer)
+    model.compile(
+        loss=centerNetLoss,
+        optimizer=optimizer,
+        metrics=[cls_loss, reg_loss, wh_loss, offset_loss]
+    )
 
     print("Beginning CenterNet Model Training fits...")
     model.fit(
