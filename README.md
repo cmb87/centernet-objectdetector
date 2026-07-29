@@ -47,6 +47,21 @@ You can train CenterNet on either the original **thermal** dataset or the new un
 * **Custom GPU Select**: `task.gpu_id="1"`
 * **Custom Batch Size**: `task.batch_size=8`
 
+### 🔄 Resuming/Restarting Training
+If training was aborted or you want to resume from a saved checkpoint, you can specify the checkpoint weights and the starting epoch directly:
+```bash
+/home/cpeeren/projects/01_ml/venvTF/bin/python lazy_centernet.py model=mobilenet_pretrained task.resume="runs/train/mobilenet_pretrained_dev/version_3/checkpoints/best_model.weights.h5" task.initial_epoch=45
+```
+* **`task.resume`**: The path to your saved `.weights.h5` checkpoint file.
+* **`task.initial_epoch`**: The epoch number to resume training from (ensures TensorBoard and learning rate schedules align correctly).
+
+### 🔍 Run Inference & Confidence Threshold
+To run inference on an image or video with a custom confidence threshold:
+```bash
+/home/cpeeren/projects/01_ml/venvTF/bin/python run_inference.py conf_thres=0.30
+```
+* **`conf_thres`**: Minimum prediction confidence score (default is `0.15`, range is `0.0` to `1.0`) to display bounding box detections.
+
 ---
 
 ## 🐞 Codebase Audit: Bugs Fixed

@@ -112,13 +112,11 @@ hydra:
     hydra:
     - hydra.mode=RUN
     task:
-    - model=mobilenet_pretrained
-    - task.gpu_id=0
-    - task.batch_size=16
+    - conf_thres=0.50
   job:
-    name: lazy_centernet
+    name: run_inference
     chdir: null
-    override_dirname: model=mobilenet_pretrained,task.batch_size=16,task.gpu_id=0
+    override_dirname: conf_thres=0.50
     id: ???
     num: ???
     config_name: config

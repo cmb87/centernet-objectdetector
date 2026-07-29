@@ -39,10 +39,12 @@ def main(cfg: DictConfig) -> None:
     # 1. Setup model dimensions and path configurations
     ih, iw, ic = cfg.model.input_size
     nc = cfg.dataset.class_num
+    conf_thres = cfg.get("conf_thres", 0.15)
 
     print(f"Model Configuration: {cfg.model.name}")
     print(f"Input Size: {ih}x{iw}x{ic}")
     print(f"Number of classes: {nc}")
+    print(f"Confidence Threshold: {conf_thres}")
 
     # 2. Instantiate Selected Backbone Model
     if cfg.model.name == "shufflenet":
@@ -125,7 +127,7 @@ def main(cfg: DictConfig) -> None:
 
         # Draw detections
         for s, c, b, w in zip(score, classes, bc, wh):
-            if s > 0.15: # Confidence threshold
+            if s > conf_thres: # Confidence threshold
                 x1 = int(b[0] - 0.5 * w[0])
                 y1 = int(b[1] - 0.5 * w[1])
                 x2 = int(b[0] + 0.5 * w[0])
@@ -162,7 +164,7 @@ def main(cfg: DictConfig) -> None:
             score, classes, bc, wh = score.numpy()[0], classes.numpy()[0], bc.numpy()[0], wh.numpy()[0]
 
             for s, c, b, w in zip(score, classes, bc, wh):
-                if s > 0.15:
+                if s > conf_thres:
                     x1 = int(b[0] - 0.5 * w[0])
                     y1 = int(b[1] - 0.5 * w[1])
                     x2 = int(b[0] + 0.5 * w[0])

@@ -4,8 +4,11 @@ hydra:
 
 name: dev
 
+conf_thres: 0.15      # Confidence threshold for inference (can be overridden on command-line)
+
 defaults:
   - _self_
   - task: train
   - dataset: merged
   - model: mobilenet_pretrained
+

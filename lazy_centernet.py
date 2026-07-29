@@ -185,10 +185,24 @@ def main(cfg: DictConfig) -> None:
         metrics=[cls_loss, reg_loss, wh_loss, offset_loss]
     )
 
-    print("Beginning CenterNet Model Training fits...")
+    initial_epoch = 0
+    resume_path = cfg.task.get("resume", None)
+    if resume_path:
+        if os.path.exists(resume_path):
+            print(f"\n🔄 [Resume] Resuming training: loading weights from {resume_path}")
+            model.load_weights(resume_path)
+            init_epoch_val = cfg.task.get("initial_epoch", 0)
+            if init_epoch_val:
+                initial_epoch = int(init_epoch_val)
+                print(f"🔄 [Resume] Setting initial epoch counter to: {initial_epoch}")
+        else:
+            print(f"\n⚠️ [Resume] Warning: Specified resume weights path '{resume_path}' does not exist! Starting training from scratch.")
+
+    print("\nBeginning CenterNet Model Training fits...")
     model.fit(
         g, 
         epochs=cfg.task.epochs,
+        initial_epoch=initial_epoch,
         callbacks=[tfbcb, mcpcb, rlrcb, dricb, drtcb, term],
         validation_data=gt,
         steps_per_epoch=max(1, cfg.dataset.num_train_samples // cfg.task.batch_size),

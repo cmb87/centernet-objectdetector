@@ -3,6 +3,9 @@ epochs: 300
 batch_size: 16
 learning_rate: 1e-4
 gpu_id: "0"
+resume: null          # Path to weights file (.weights.h5) to resume training from
+initial_epoch: 0      # Epoch to start training from (useful for resuming learning rate schedules / TensorBoard)
+
 
 augmentations:
   # Toggle overall data augmentation on or off

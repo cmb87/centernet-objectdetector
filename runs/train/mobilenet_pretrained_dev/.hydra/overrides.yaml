@@ -1,3 +1,1 @@
-- model=mobilenet_pretrained
-- task.gpu_id=0
-- task.batch_size=16
+- conf_thres=0.50
