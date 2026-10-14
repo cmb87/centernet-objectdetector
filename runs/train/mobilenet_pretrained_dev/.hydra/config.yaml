@@ -1,5 +1,5 @@
 name: dev
-conf_thres: 0.5
+conf_thres: 0.15
 task:
   task: train
   epochs: 300

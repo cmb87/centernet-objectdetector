@@ -111,12 +111,11 @@ hydra:
   overrides:
     hydra:
     - hydra.mode=RUN
-    task:
-    - conf_thres=0.50
+    task: []
   job:
-    name: run_inference
+    name: inference_seeker
     chdir: null
-    override_dirname: conf_thres=0.50
+    override_dirname: ''
     id: ???
     num: ???
     config_name: config
